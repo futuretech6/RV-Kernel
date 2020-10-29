@@ -1,8 +1,11 @@
 # Makefile_kernel
 .PHONY: all
-all: head.o
+all: head.o entry.o strap.o
 
-head.o: head.S
+%.o: %.S
+	@${GCC} ${CFLAG} -c $< -o $@
+
+strap.o: strap.c
 	@${GCC} ${CFLAG} -c $< -o $@
 
 .PHONY: clean

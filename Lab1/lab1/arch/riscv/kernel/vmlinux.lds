@@ -11,4 +11,6 @@ SECTIONS
   . += 0x8000;
   stack_top = .;
   _end = .;
+  mtvec_base = 0x0;
+  stvec_base = 0x0;
 }

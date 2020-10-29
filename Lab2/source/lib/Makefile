@@ -1,10 +1,10 @@
-# Makefile_kernel
+# Makefile_lib
 .PHONY: all
-all: head.o
+all: put.o
 
-head.o: head.S
+%.o: %.c
 	@${GCC} ${CFLAG} -c $< -o $@
 
 .PHONY: clean
 clean:
-	@rm -f *.o
+	@rm *.o 
