@@ -2,14 +2,14 @@
 
 .global _start
 _start:
-    # # init .bss
-    # la t0, .bss      # pointer
-    # la t1, bss_size  # counter
-    # bss_init_loop:
-    #     sb zero, 0(t0)
-    #     addi t0, t0, 1
-    #     addi t1, t1, -1
-    #     bne t1, zero, bss_init_loop
+    # init .bss
+    la t0, .bss      # pointer
+    la t1, bss_size  # counter
+    bss_init_loop:
+        sb zero, 0(t0)
+        addi t0, t0, 1
+        addi t1, t1, -1
+        bne t1, zero, bss_init_loop
 
     # set mtimecmp to mtime+time_sep
     la t0, mtime_addr  # RV64, t0 is of 64 bit
@@ -22,6 +22,10 @@ _start:
     # set time int delegation
     li t1, 0x20  # mi[e|p][5]=sti[e|p]
     csrs mideleg, t1
+
+    # set mstatus.mpie
+    li t1, 0x80  # mstatus[7]
+    csrs mstatus, t1
 
     # set mstatus.mie, mie.mtie, sstatus.sie, sie.stie
     li t1, 0x8   # mstatus[3]

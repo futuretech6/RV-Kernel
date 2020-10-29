@@ -3,15 +3,17 @@
 .global trap_m
 trap_m:
     # Save regs
-    addi sp, sp, -24
+    addi sp, sp, -32
     sd t0, 0(sp)
     sd t1, 8(sp)
     csrr t0, mcause
     sd t0, 16(sp)
+    csrr t0, mepc
+    sd t0, 24(sp)
 
     csrr t0, mcause
-    srl t1, t0, 63    # MSB
-    and t0, t0, 0xff  # trim MSB
+    srli t1, t0, 63    # t1 = MSB
+    andi t0, t0, 0xff  # t0 = code
     beq t1, zero, trap_m_except
 
     trap_m_int:
@@ -23,7 +25,7 @@ trap_m:
             # enable mip.stip
             li t0, 0x20   # mip[5]
             csrs mip, t0  # For trap_s
-            
+
             # clear mie.mtie
             li t0, 0x80
             csrc mie, t0
@@ -36,52 +38,56 @@ trap_m:
         j trap_m_except_end
 
         trap_m_ecallS:
+            # !!!!!! clear mip.stip !!!!!!
+            li t0, 0x20   # sip[5]
+            csrc mip, t0  # Stop from calling trap_s
+
             # set mtimecmp += time_sep, hardware will clear mip.mtip
-            la t0, mtimecmp_addr
-            ld t0, 0(t0)
+            la t0, mtime_addr
+            ld t0, 0(t0)    # t0 = mtimecmp
             la t1, time_sep
-            add t1, t0, t1
+            add t1, t0, t1  # t1 = mtimecmp+sep
             la t0, mtimecmp_addr
             sd t1, 0(t0)
-
-            
-    li t1, 0x8   # mstatus[3]
-    csrs mstatus, t1
 
             # enable mie.mtie
             li t0, 0x80
             csrs mie, t0
-            
 
             j trap_m_except_end
 
         trap_m_except_end:
-            csrr t0, mepc
-            addi t0, t0, 4
-            csrw mepc, t0
+            ld t0, 24(sp)
+            addi t0, t0, 4  # mepc += 4
+            sd t0, 24(sp)
 
     trap_m_end:
     # Get regs back
+    ld t0, 24(sp)
+    csrw mepc, t0
     ld t0, 16(sp)
     csrw mcause, t0
     ld t1, 8(sp)
     ld t0, 0(sp)
-    addi sp, sp, 24
+    addi sp, sp, 32
+
     mret
 
 
 .global trap_s
 trap_s:
     # Save regs
-    addi sp, sp, -24
+    addi sp, sp, -40
     sd t0, 0(sp)
     sd t1, 8(sp)
     csrr t0, scause
     sd t0, 16(sp)
+    csrr t0, sepc
+    sd t0, 24(sp)
 
     csrr t0, scause
-    srl t1, t0, 63    # MSB
-    and t0, t0, 0xff  # trim MSB
+    srli t1, t0, 63    # t1 = MSB
+    andi t0, t0, 0xff  # t0 = code
     beq t1, zero, trap_s_except
 
     trap_s_int:
@@ -91,28 +97,27 @@ trap_s:
 
         trap_s_timer:
             call put_trap_s
-            # enable sip.stip
-            li t0, 0x20   # sip[5]
-            csrc sip, t0  # Clear sip.stip means finish
-
             ecall
 
             j trap_s_end
 
     trap_s_except:
- 
-        j trap_s_end
+
+        j trap_s_except_end  # No implementation yet
 
         trap_s_except_end:
-            csrr t0, sepc
-            addi t0, t0, 4
-            csrw sepc, t0
+            ld t0, 24(sp)
+            addi t0, t0, 4  # sepc += 4
+            sd t0, 24(sp)
 
     trap_s_end:
     # Get regs back
+    ld t0, 24(sp)
+    csrw sepc, t0
     ld t0, 16(sp)
     csrw scause, t0
     ld t1, 8(sp)
     ld t0, 0(sp)
-    addi sp, sp, 24
+    addi sp, sp, 40
+
     sret

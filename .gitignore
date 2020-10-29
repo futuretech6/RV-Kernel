@@ -9,3 +9,6 @@ bin
 Image
 vmlinux
 *.gz
+System.map
+debug.log
+*.mp4
