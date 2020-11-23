@@ -183,7 +183,7 @@ trap_s:
         j trap_s_end
 
         trap_s_timer:
-            call put_trap_s
+            call do_timer
             ecall
 
             j trap_s_end
@@ -237,3 +237,46 @@ trap_s:
     addi sp, sp, 264
 
     sret
+
+# t0 = &current
+# t1 = &next
+# t4 = THREAD_OFFSET
+.global switch_to_asm
+switch_to_asm:
+    ld t2, 0(t0)    # t2 = current
+    ld t3, 0(t1)    # t3 = next
+    sd t3, 0(t0)    # current = next
+    add t2, t2, t4  # t2 = &(current->thread)
+    add t3, t3, t4  # t3 = &(next->thread)
+
+    sd ra, 0(t2)
+    sd sp, 8(t2)
+    sd s0, 16(t2)
+    sd s1, 24(t2)
+    sd s2, 32(t2)
+    sd s3, 40(t2)
+    sd s4, 48(t2)
+    sd s5, 56(t2)
+    sd s6, 64(t2)
+    sd s7, 72(t2)
+    sd s8, 80(t2)
+    sd s9, 88(t2)
+    sd s10, 96(t2)
+    sd s11, 104(t2)
+
+    # ld ra, 0(t3)
+    # ld sp, 8(t3)
+    # ld s0, 16(t3)
+    ld s1, 24(t3)
+    ld s2, 32(t3)
+    ld s3, 40(t3)
+    ld s4, 48(t3)
+    ld s5, 56(t3)
+    ld s6, 64(t3)
+    ld s7, 72(t3)
+    ld s8, 80(t3)
+    ld s9, 88(t3)
+    ld s10, 96(t3)
+    ld s11, 104(t3)
+
+    ret
