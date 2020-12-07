@@ -1,5 +1,7 @@
-# Makefile_lab3
+# Makefile_lab4
+# ln -s ~/lab4/.gdbinit ~/.gdbinit
 # sed -i '$aalias gdb=/opt/riscv/bin/riscv64-unknown-linux-gnu-gdb' ~/.bashrc
+# ln -s
 export TOP=$(shell pwd)
 export RISCV=/opt/riscv
 export PATH:=${PATH}:${RISCV}/bin

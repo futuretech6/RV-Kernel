@@ -2,8 +2,7 @@
 DEP = ../include/sched.h ${TOP}/Makefile
 
 .PHONY: all
-all: head.o entry.o strap.o sched.o# switch.o
-
+all: head.o entry.o strap.o sched.o vm.o
 %.o: %.S ${DEP}
 	@${GCC} ${CFLAG} -c $< -o $@
 

@@ -12,8 +12,8 @@ SECTIONS
     .rodata : { *(.rodata) }
     .data : { *(.data) }
     .bss : { *(.bss) }
-    . += 0x8000;
-    stack_top = .;
+    . += 0x10fff;
+    stack_top = 0x80010fff;
     _end = .;
 
     bss_size = 0x100;
