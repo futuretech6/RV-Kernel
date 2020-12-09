@@ -1,7 +1,7 @@
 #ifndef _SCHED_H
 #define _SCHED_H
 
-#define TASK_BASE 0x80010000
+#define TASK_BASE 0xffffffe000010000
 #define TASK_SIZE (4096)
 #define THREAD_OFFSET (5 * 0x08)
 
@@ -21,6 +21,9 @@
 #define TASK_STOPPED 4
 
 // Ensure Mutual Exclusion
+
+#define PRIORITY
+
 #ifdef SJF
 #define PREEMPT_ENABLE 0
 #else

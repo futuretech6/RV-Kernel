@@ -2,6 +2,9 @@
 
 .global _start
 _start:
+    # turn off MMU
+    csrw satp, zero
+
     # init .bss
     la t0, .bss      # pointer
     la t1, bss_size  # counter
@@ -23,6 +26,10 @@ _start:
     li t1, 0x20  # mi[e|p][5]=sti[e|p]
     csrs mideleg, t1
 
+    # set delegation of instruction/load/store page fault
+    la t1, medeleg_bit
+    csrs mideleg, t1  # just set is ok
+
     # set mstatus.mpie
     li t1, 0x80  # mstatus[7]
     csrs mstatus, t1
@@ -41,6 +48,10 @@ _start:
     la t1, trap_m  # mode = directed
     csrw mtvec, t1
 
+    # set mscratch to stack_top in physical space
+    la t1, stack_top
+    csrw mscratch, t1
+
     # switch from M to S
     li t1, 0x1000  # MPP[1] = 0
     csrc mstatus, t1
@@ -56,8 +67,21 @@ S_Mode:
     la t1, trap_s  # mode = directed
     csrw stvec, t1
 
-    # set sp
-    la sp, stack_top
+    # init page mapping **using physical address**
+    call paging_init
+
+    # # set satp to turn on MMU
+    # or t0, zero, 8       # mode=satp[63:60] = 8
+    # sll t0, t0, 16
+    # ori t0, t0, 0        # ASID=satp[59:44] = 0
+    # sll t0, t0, 44
+    # la t1, _end
+    # srl t1, t1, 12 #???????????
+    # or t0, t0, t1  # PPN=satp[43:0] = 0x80000000 >> 12 = 0x80000, in unit 4KB(>>12)
+    # csrw satp, t0
+
+    # set sp to stack_top in virtual space
+    la sp, init_stack_top
 
     # jump to start_kernel in main.c
     call start_kernel

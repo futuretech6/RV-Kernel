@@ -1,10 +1,10 @@
 /**
  * @file sched.c
  * @author Scott Chen
- * @brief the scheduler implementation of oslab3
- * @version 0.1
- * @date 2020-11-05
- * @ref https://gitee.com/zjuicsr/lab20fall-stu/wikis/lab3
+ * @brief the scheduler implementation of oslab4
+ * @version 0.2
+ * @date 2020-12-05
+ * @ref https://gitee.com/zjuicsr/lab20fall-stu/wikis/lab4
  */
 #include "sched.h"
 #include "put.h"
@@ -73,6 +73,8 @@ void do_timer(void) {
 
 /**
  * @brief context switch from current to next
+ *
+ * @param next
  */
 void switch_to(struct task_struct *next) {
     if (current == next)
@@ -148,9 +150,17 @@ void schedule(void) {
     // Must be printed here to meet demands, else the printed info is out-dated
     puts("[!] Switch from task ");
     puti(current->pid);
-    puts(" to task ");
+    puts(" [task struct: ");
+    putx((unsigned long)&current);
+    puts(", sp: ");
+    putx(current->thread.sp);
+    puts("] to task ");
     puti(task[i_min_cnt]->pid);
-    puts(", prio: ");
+    puts(" [task struct: ");
+    putx((unsigned long)&task[i_min_cnt]);
+    puts(", sp: ");
+    putx(task[i_min_cnt]->thread.sp);
+    puts("], prio: ");
     puti(task[i_min_cnt]->priority);
     puts(", counter: ");
     puti(task[i_min_cnt]->counter);

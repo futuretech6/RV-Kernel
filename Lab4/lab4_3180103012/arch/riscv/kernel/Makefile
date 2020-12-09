@@ -1,13 +1,13 @@
 # Makefile_kernel
-DEP = ../include/sched.h ${TOP}/Makefile
+DEP = ./Makefile ../include/sched.h ../include/vm.h ${TOP}/Makefile
 
 .PHONY: all
-all: head.o entry.o strap.o sched.o vm.o
+all: head.o entry.o strap.o sched.o vm.o ${DEP}
 %.o: %.S ${DEP}
-	@${GCC} ${CFLAG} -c $< -o $@
+	@${CC} ${CFLAG} -c $< -o $@
 
 %.o: %.c ${DEP}
-	@${GCC} ${CFLAG} -c $< -o $@
+	@${CC} ${CFLAG} -c $< -o $@
 
 .PHONY: clean
 clean:

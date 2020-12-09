@@ -8,6 +8,8 @@ thread_init:
 
 .global trap_m
 trap_m:
+    # Exchange sp and mscratch to use physical stack
+    csrrw sp, mscratch, sp
     # Save regs
     addi sp, sp, -264
     sd x1, 256(sp)
@@ -41,67 +43,72 @@ trap_m:
     sd x29, 32(sp)
     sd x30, 24(sp)
     sd x31, 16(sp)
-    csrr t0, mcause
-    sd t0, 8(sp)
-    csrr t0, mepc
-    sd t0, 0(sp)
+    csrr s0, mcause
+    sd s0, 8(sp)
+    csrr s0, mepc
+    sd s0, 0(sp)
 
-    csrr t0, mcause
-    srli t1, t0, 63    # t1 = MSB
-    andi t0, t0, 0xff  # t0 = code
-    beq t1, zero, trap_m_except
+    # ================================ trap_m starts here ================================
+
+    csrr s0, mcause
+    srli s1, s0, 63    # s1 = MSB
+    andi s0, s0, 0xff  # s0 = code
+    beq s1, zero, trap_m_except
 
     trap_m_int:
-        la t1, mcause_MTimer
-        beq t0, t1, trap_m_timer
+        la s1, mcause_MTimer
+        beq s0, s1, trap_m_timer
         j trap_m_end
 
         trap_m_timer:
             # enable mip.stip
-            li t0, 0x20   # mip[5]
-            csrs mip, t0  # For trap_s
+            li s0, 0x20   # mip[5]
+            csrs mip, s0  # For trap_s
 
             # clear mie.mtie
-            li t0, 0x80
-            csrc mie, t0
+            li s0, 0x80
+            csrc mie, s0
 
             j trap_m_end
 
     trap_m_except:
-        la t1, mcause_ecallS
-        beq t0, t1, trap_m_ecallS
+        la s1, mcause_ecallS
+        beq s0, s1, trap_m_ecallS
         j trap_m_except_end
 
         trap_m_ecallS:
             # !!!!!! clear mip.stip !!!!!!
-            li t0, 0x20   # sip[5]
-            csrc mip, t0  # Stop from calling trap_s
+            li s0, 0x20   # sip[5]
+            csrc mip, s0  # Stop from calling trap_s
 
             # set mtimecmp += time_sep, hardware will clear mip.mtip
-            la t0, mtime_addr
-            ld t0, 0(t0)    # t0 = mtimecmp
-            la t1, time_sep
-            add t1, t0, t1  # t1 = mtimecmp+sep
-            la t0, mtimecmp_addr
-            sd t1, 0(t0)
+            la s0, mtime_addr
+            ld s0, 0(s0)    # s0 = mtimecmp
+            la s1, time_sep
+            add s1, s0, s1  # s1 = mtimecmp+sep
+            la s0, mtimecmp_addr
+            sd s1, 0(s0)
 
             # enable mie.mtie
-            li t0, 0x80
-            csrs mie, t0
+            li s0, 0x80
+            csrs mie, s0
 
             j trap_m_except_end
 
         trap_m_except_end:
-            ld t0, 0(sp)
-            addi t0, t0, 4  # mepc += 4
-            sd t0, 0(sp)
+            ld s0, 0(sp)
+            addi s0, s0, 4  # mepc += 4
+            sd s0, 0(sp)
 
     trap_m_end:
+
+    # ================================ trap_m ends here ================================
+
     # Get regs back
-    ld t0, 0(sp)
-    csrw mepc, t0
-    ld t0, 8(sp)
-    csrw mcause, t0
+    ld s0, 0(sp)
+    csrw mepc, s0
+    ld s0, 8(sp)
+    csrw mcause, s0
     ld x31, 16(sp)
     ld x30, 24(sp)
     ld x29, 32(sp)
@@ -134,7 +141,8 @@ trap_m:
     ld x2, 248(sp)
     ld x1, 256(sp)
     addi sp, sp, 264
-
+    # Exchange sp and mscratch to use physical stack
+    csrrw sp, mscratch, sp
     mret
 
 
@@ -173,43 +181,65 @@ trap_s:
     sd x29, 32(sp)
     sd x30, 24(sp)
     sd x31, 16(sp)
-    csrr t0, scause
-    sd t0, 8(sp)
-    csrr t0, sepc
-    sd t0, 0(sp)
+    csrr s0, scause
+    sd s0, 8(sp)
+    csrr s0, sepc
+    sd s0, 0(sp)
 
-    csrr t0, scause
-    srli t1, t0, 63    # t1 = MSB
-    andi t0, t0, 0xff  # t0 = code
-    beq t1, zero, trap_s_except
+    # ================================ trap_s starts here ================================
+
+    csrr s0, scause
+    srli s1, s0, 63    # s1 = MSB
+    andi s0, s0, 0xff  # s0 = code
+    beq s1, zero, trap_s_except
 
     trap_s_int:
-        la t1, scause_STimer
-        beq t0, t1, trap_s_timer
+        la s1, scause_STimer
+        beq s0, s1, trap_s_timer
         j trap_s_end
 
         trap_s_timer:
             ecall
             call do_timer
-
             j trap_s_end
 
     trap_s_except:
 
-        # No implementation yet
+        la s1, scause_instPF
+        beq s0, s1, trap_s_instPF
+        la s1, scause_loadPF
+        beq s0, s1, trap_s_loadPF
+        la s1, scause_storePF
+        beq s0, s1, trap_s_storePF
         j trap_s_except_end
 
+        trap_s_instPF:
+            call strap_instPF
+            j trap_s_except_end
+
+        trap_s_loadPF:
+            call strap_loadPF
+            j trap_s_except_end
+
+        trap_s_storePF:
+            call strap_storePF
+            j trap_s_except_end
+
         trap_s_except_end:
-            ld t0, 0(sp)
-            addi t0, t0, 4  # sepc += 4
-            sd t0, 0(sp)
+            ld s0, 0(sp)
+            addi s0, s0, 4  # sepc += 4
+            sd s0, 0(sp)
 
     trap_s_end:
+
+
+    # ================================ trap_s ends here ================================
+
     # Get regs back
-    ld t0, 0(sp)
-    csrw mepc, t0
-    ld t0, 8(sp)
-    csrw mcause, t0
+    ld s0, 0(sp)
+    csrw mepc, s0
+    ld s0, 8(sp)
+    csrw mcause, s0
     ld x31, 16(sp)
     ld x30, 24(sp)
     ld x29, 32(sp)

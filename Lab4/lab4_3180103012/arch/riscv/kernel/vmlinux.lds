@@ -55,7 +55,11 @@ SECTIONS {
     mtimecmp_addr = 0x2004000;
     time_sep_init = 1000000;
     time_sep = 100000;
-    mcause_MTimer = 0x7;
-    mcause_ecallS = 0x9;
-    scause_STimer = 0x5;
+    mcause_MTimer  = 7;
+    mcause_ecallS  = 9;
+    scause_STimer  = 5;
+    scause_instPF  = 12;
+    scause_loadPF  = 13;
+    scause_storePF = 15;
+    medeleg_bit = 0xB000;
 }

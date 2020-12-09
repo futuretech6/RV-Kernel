@@ -1,7 +1,7 @@
 # Makefile_lab4
 # ln -s ~/lab4/.gdbinit ~/.gdbinit
 # sed -i '$aalias gdb=/opt/riscv/bin/riscv64-unknown-linux-gnu-gdb' ~/.bashrc
-# ln -s
+# sed -i '$aalias gdb=/opt/riscv/bin/riscv64-unknown-linux-gnu-objdump' ~/.bashrc
 export TOP=$(shell pwd)
 export RISCV=/opt/riscv
 export PATH:=${PATH}:${RISCV}/bin
@@ -9,7 +9,7 @@ export PATH:=${PATH}:${RISCV}/bin
 export
 CROSS_=riscv64-unknown-elf-
 AR=${CROSS_}ar
-GCC=${CROSS_}gcc
+CC=${CROSS_}gcc
 LD=${CROSS_}ld
 OBJCOPY=${CROSS_}objcopy
 
@@ -19,7 +19,8 @@ ABI ?= lp64
 INCLUDE = -I ${TOP}/include/ -I ${TOP}/arch/riscv/include/
 CF = -O0 -march=$(ISA) -mabi=$(ABI) -mcmodel=medany -ffunction-sections -fdata-sections -nostartfiles -nostdlib -nostdinc -static -lgcc -Wl,--nmagic -Wl,--gc-sections
 # CFLAG = ${CF} ${INCLUDE} -g -D SJF
-CFLAG = ${CF} ${INCLUDE} -g -D PRIORITY
+# CFLAG = ${CF} ${INCLUDE} -g -D PRIORITY
+CFLAG = ${CF} ${INCLUDE} -g
 
 .PHONY: all
 all:

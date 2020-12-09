@@ -4,3 +4,4 @@ target remote localhost:1234
 layout asm
 b schedule
 b do_timer
+b create_mapping

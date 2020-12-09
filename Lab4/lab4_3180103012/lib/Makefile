@@ -1,11 +1,11 @@
 # Makefile_lib
-DEP = ${TOP}/include/put.h ${TOP}/include/rand.h
+DEP = ./Makefile ${TOP}/include/put.h ${TOP}/include/rand.h
 
 .PHONY: all
 all: put.o rand.o
 
 %.o: %.c ${DEP}
-	@${GCC} ${CFLAG} -c $< -o $@
+	@${CC} ${CFLAG} -c $< -o $@
 
 .PHONY: clean
 clean:
