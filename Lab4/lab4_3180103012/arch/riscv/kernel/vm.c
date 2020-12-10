@@ -10,44 +10,79 @@
 #include "vm.h"
 #include "put.h"
 
+/**
+ * @brief Alloc physical memory space for kernel
+ *
+ * @param size Memory space, in unit byte
+ * @return void* Allocated space, NULL for insufficient space
+ */
 void *kalloc_byte(size_t size) {
+    static struct free_list_node first_node;
     static struct free_list_node *free_list = NULL;
     if (free_list == NULL) {  // Init
+        free_list = &first_node;
         asm("la t0, _end");
-        asm("sd t0, %0" ::"m"(free_list));
-        free_list->base  = (void *)0x80000000;
-        free_list->limit = 0x1000000;  // 16MB
+        asm("sd t0, %0" ::"m"(free_list->base));
+        free_list->limit = 0x10000000;  // 256MB // 16MB
         free_list->next  = NULL;
     }
     for (struct free_list_node *p = free_list; p; p = free_list->next) {
         if (p->limit >= size) {
             p->limit -= size;
             return (void *)((uint8 *)p->base + p->limit - size);
-        }
+        } else
+            return NULL;
     }
 }
 
+/**
+ * @brief Memory set
+ *
+ * @param s Source address
+ * @param c Char for replacement, of size 1 byte here
+ * @param n Number of bytes replaced
+ */
 void memset_byte(void *s, uint8 c, size_t n) {
     for (int i = 0; i < n; i++)
         *((uint8 *)s + i) = c;
 }
 
-uint64 *page_walk(uint64 *pgtbl, uint64 va, _Bool alloc) {
-    for (int level = 2; level > 0; level--, pgtbl = (uint64 *)((uint64)pgtbl + PAGE_SIZE)) {
-        uint64 *pte;
+/**
+ * @brief Page walk from level-2 PT to level-1 PT, and return addr of level-0 PTE
+ *
+ * @param pgtbl Addr of 1st(level-2) page table
+ * @param va VA
+ * @return uint64* Address of pte of the 3rd(level-0) PTE
+ */
+uint64 *page_walk(uint64 *pgtbl, uint64 va) {
+    for (int level = 2; level > 0; level--) {
+        uint64 *pte_addr;
         switch (level) {
-            case 2: pte = &pgtbl[VAtoVPN2(va)]; break;
-            case 1: pte = &pgtbl[VAtoVPN1(va)]; break;
+            case 2: pte_addr = &pgtbl[VAtoVPN2(va)]; break;
+            case 1: pte_addr = &pgtbl[VAtoVPN1(va)]; break;
         }
-        // Don' check
-        // if (PTEtoV(*pte))
-        //     pgtbl = (uint64 *)PTEtoPA(*pte);
-        // else {  // Invalid
-        //     if (!alloc || (pgtbl == (uint64 *)kalloc_byte(PAGE_SIZE)) == NULL)
-        //         return NULL;
-        // memset_byte(pgtbl, (uint8)0, PAGE_SIZE);
-        LoadPTE(*pte, PAtoPPN((uint64)pgtbl + PAGE_SIZE), 0, 1);
-        // }
+#if PAGING_DEBUG
+        puts("\n==== in `page_walk`");
+        puts("\nlevel: ");
+        putd(level);
+        puts("\npgtbl: ");
+        putx(pgtbl);
+        puts("\nva: ");
+        putx(va);
+        puts("\npte_addr: ");
+        putx(pte_addr);
+        puts("\n*pte_addr: ");
+        putx(*pte_addr);
+        puts("\n");
+#endif
+        // Update next level's pgtbl
+        if (PTEtoV(*pte_addr)) {  // Valid PTE, next level PT has been constructed
+            pgtbl = (uint64 *)(PTEtoPPN(*pte_addr) << 12);
+        } else {  // Invalid PTE, no next level PT
+            pgtbl = kalloc_byte(PAGE_SIZE);
+            memset_byte(pgtbl, 0, PAGE_SIZE);
+            LoadPTE(*pte_addr, PAtoPPN((uint64)pgtbl), 0, 1);
+        }
     }
     return &pgtbl[VAtoVPN0(va)];
 }
@@ -55,35 +90,48 @@ uint64 *page_walk(uint64 *pgtbl, uint64 va, _Bool alloc) {
 /**
  * @brief Create a mapping object
  *
- * @param pgtbl 根页表的基地址
- * @param va 需要映射的虚拟地址的基地址
- * @param pa 需要映射的物理地址的基地址
- * @param sz 映射的大小
- * @param perm 映射的读写权限
+ * @param pgtbl Base addr of level-2 page table
+ * @param va Mapping from
+ * @param pa Mapping to
+ * @param sz Mapping size
+ * @param perm Mapping permission: XWR
  */
-int create_mapping(uint64 *pgtbl, uint64 va, uint64 pa, uint64 sz, int perm) {
-    uint64 *pte;  // PTE of level0
-
-    for (uint64 v_addr = Page_Floor(va); v_addr != Page_Floor(va + sz - 1);
-         v_addr += PAGE_SIZE, pa += PAGE_SIZE, pgtbl += PAGE_SIZE) {
-        if ((pte = page_walk(pgtbl, v_addr, 1)) == NULL)  // Alloc error
-            return -1;
-        if (PTEtoV(*pte)) {  // Invalid, page fault
-            // remap error?
-        }
-        LoadPTE(*pte, PAtoPPN(pa), perm, 1);
+void create_mapping(uint64 *pgtbl, uint64 va, uint64 pa, uint64 sz, int perm) {
+#if PAGING_DEBUG
+    static int cnt = 0;
+    puts("\n==== In `create_mapping`");
+    puts("\ncnt: ");
+    putd(cnt++);
+    puts("\n");
+#endif
+    for (uint64 addr_last_byte = va + sz - 1; va <= addr_last_byte;
+         va += PAGE_SIZE, pa += PAGE_SIZE) {
+#if PAGING_DEBUG
+        puts("\n==== In `create_mapping`");
+        puts("\npgtbl: ");
+        putx(pgtbl);
+        puts("\nva: ");
+        putx(va);
+        puts("\nVPN2: ");
+        putx(VAtoVPN2(va));
+        puts(", VPN1: ");
+        putx(VAtoVPN1(va));
+        puts(", VPN0: ");
+        putx(VAtoVPN0(va));
+        puts("\npa: ");
+        putx(pa);
+#endif
+        uint64 *pte_addr = page_walk(pgtbl, va);  // PTE of level0
+        LoadPTE(*pte_addr, PAtoPPN(pa), perm, 1);
+#if PAGING_DEBUG
+        puts("\n==== In `create_mapping`");
+        puts("\npte_addr: ");
+        putx(pte_addr);
+        puts("\npte: ");
+        putx(*pte_addr);
+        puts("\n");
+#endif
     }
-    return 0;
-
-    // if (pgtbl)
-    //     pRootPT = (struct pageTable *)pgtbl;
-
-    // PPN2toPTE(pRootPT->PTE_list[VAtoVPN2(va)], PAtoPPN2(pa));
-    // PROTtoPTE(pRootPT->PTE_list[VAtoVPN2(va)], 0, 1);
-    // PPN1toPTE(pRootPT->PTE_list[VAtoVPN1(va)], PAtoPPN1(pa));
-    // PROTtoPTE(pRootPT->PTE_list[VAtoVPN1(va)], 0, 1);
-    // PPN0toPTE(pRootPT->PTE_list[VAtoVPN0(va)], PAtoPPN1(pa));
-    // PROTtoPTE(pRootPT->PTE_list[VAtoVPN0(va)], perm, 1);  // Only the last one has RWX
 }
 
 /**
@@ -95,11 +143,10 @@ void paging_init(void) {
     uint64 *_end_addr;
     asm("la t0, _end");
     asm("sd t0, %0" ::"m"(_end_addr));
-    putx((uint64)_end_addr);
     create_mapping(  // 等值映射
-        _end_addr, 0x80000000, 0x80000000, 0x1000000, PERM_R | PERM_W | PERM_X);
+        _end_addr, MAPPING_BASE_P, MAPPING_BASE_P, MAPPING_LIMIT, PERM_R | PERM_W | PERM_X);
     create_mapping(  // 高位映射
-        _end_addr, 0xffffffe000000000, 0x80000000, 0x1000000, PERM_R | PERM_W | PERM_X);
+        _end_addr, MAPPING_BASE_V, MAPPING_BASE_P, MAPPING_LIMIT, PERM_R | PERM_W | PERM_X);
     create_mapping(  // 映射UART
-        _end_addr, 0x10000000, 0x10000000, 0x1000000, PERM_R | PERM_W | PERM_X);
+        _end_addr, (uint64)UART_ADDR, (uint64)UART_ADDR, 0x1, PERM_R | PERM_W | PERM_X);
 }

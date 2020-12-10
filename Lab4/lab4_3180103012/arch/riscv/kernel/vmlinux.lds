@@ -51,16 +51,24 @@ SECTIONS {
     _end = .;
 
     bss_size = 0x1000;
+
     mtime_addr = 0x200bff8;
     mtimecmp_addr = 0x2004000;
     time_sep_init = 1000000;
     time_sep = 100000;
-    mcause_MTimer  = 7;
-    mcause_ecallS  = 9;
-    mcause_ldFault = 5;
-    scause_STimer  = 5;
-    scause_instPF  = 12;
-    scause_loadPF  = 13;
-    scause_storePF = 15;
+
+    mcause_i_MTimer  = 7;
+
+    mcasue_e_inst    = 2;
+    mcause_e_ecallS  = 9;
+    mcause_e_ldFault = 5;
+    mcause_e_loadPF  = 13;
+
+    scause_i_STimer  = 5;
+
+    scause_e_instPF  = 12;
+    scause_e_loadPF  = 13;
+    scause_e_storePF = 15;
+
     medeleg_bit = 0xB000;
 }

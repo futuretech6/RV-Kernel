@@ -56,7 +56,7 @@ trap_m:
     beq s1, zero, trap_m_except
 
     trap_m_int:
-        la s1, mcause_MTimer
+        la s1, mcause_i_MTimer
         beq s0, s1, trap_m_timer
         j trap_m_end
 
@@ -72,7 +72,7 @@ trap_m:
             j trap_m_end
 
     trap_m_except:
-        la s1, mcause_ecallS
+        la s1, mcause_e_ecallS
         beq s0, s1, trap_m_ecallS
         j trap_m_except_end
 
@@ -194,7 +194,7 @@ trap_s:
     beq s1, zero, trap_s_except
 
     trap_s_int:
-        la s1, scause_STimer
+        la s1, scause_i_STimer
         beq s0, s1, trap_s_timer
         j trap_s_end
 
@@ -205,11 +205,11 @@ trap_s:
 
     trap_s_except:
 
-        la s1, scause_instPF
+        la s1, scause_e_instPF
         beq s0, s1, trap_s_instPF
-        la s1, scause_loadPF
+        la s1, scause_e_loadPF
         beq s0, s1, trap_s_loadPF
-        la s1, scause_storePF
+        la s1, scause_e_storePF
         beq s0, s1, trap_s_storePF
         j trap_s_except_end
 
@@ -232,14 +232,13 @@ trap_s:
 
     trap_s_end:
 
-
     # ================================ trap_s ends here ================================
 
     # Get regs back
     ld s0, 0(sp)
-    csrw mepc, s0
+    csrw sepc, s0
     ld s0, 8(sp)
-    csrw mcause, s0
+    csrw scause, s0
     ld x31, 16(sp)
     ld x30, 24(sp)
     ld x29, 32(sp)

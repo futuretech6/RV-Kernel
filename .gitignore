@@ -12,3 +12,4 @@ vmlinux
 System.map
 debug.log
 *.mp4
+dasm.S

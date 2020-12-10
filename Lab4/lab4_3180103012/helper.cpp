@@ -1,8 +1,5 @@
-#define NULL 0x0
-
-#define MAPPING_BASE_P 0x80000000
-#define MAPPING_BASE_V 0xffffffe000000000
-#define MAPPING_LIMIT 0x1000000  // 16MB
+#include <cstdlib>
+#include <iostream>
 
 #define PERM_R 0b10
 #define PERM_W 0b100
@@ -15,20 +12,6 @@
 typedef unsigned long uint64;
 typedef unsigned char uint8;
 typedef unsigned long size_t;
-
-struct free_list_node {
-    void *base;
-    size_t limit;
-    struct free_list_node *next;
-};
-
-/**
- * @brief Struct of PTE listed below:
- * PPN2 53:28; PPN1 27:19; PPN0 18:10; rsw 9:8; DAGUXWRV 8:0
- */
-struct pageTable {
-    uint64 PTE_list[512];
-};
 
 #define Page_Floor(__addr) ((uint64)__addr & ~(uint64)(PAGE_SIZE - 1))
 
@@ -55,7 +38,13 @@ struct pageTable {
 #define PTEtoPPN(__pte) (((uint64)(__pte)&0x003ffffffffffc00) >> 10)
 #define PTEtoV(__pte) ((uint64)(__pte)&0x1)
 
-// extern struct pageTable *pRootPT;
-
-void create_mapping(uint64 *pgtbl, uint64 va, uint64 pa, uint64 sz, int perm);
-void paging_init(void);
+int main(int argc, char const *argv[]) {
+    using namespace std;
+    uint64 addr = 0x80000000;
+    cout << VAtoVPN2(addr) << " " << VAtoVPN1(addr) << " " << VAtoVPN0(addr) << endl;
+    addr = 0xffffffe000000000;
+    cout << VAtoVPN2(addr) << " " << VAtoVPN1(addr) << " " << VAtoVPN0(addr) << endl;
+    addr = 0x10000000;
+    cout << VAtoVPN2(addr) << " " << VAtoVPN1(addr) << " " << VAtoVPN0(addr) << endl;
+    return 0;
+}

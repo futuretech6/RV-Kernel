@@ -32,12 +32,12 @@ void task_init(void) {
 
         if (i != 0) {
             puts("[PID = ");
-            puti(task[i]->pid);
+            putd(task[i]->pid);
             puts("] Process Create Successfully! counter = ");
-            puti(task[i]->counter);
+            putd(task[i]->counter);
 #if PREEMPT_ENABLE == 1  // PRIORITY
             puts(" priority = ");
-            puti(task[i]->priority);
+            putd(task[i]->priority);
 #endif
             puts("\n");
         }
@@ -51,11 +51,11 @@ void do_timer(void) {
 #if PREEMPT_ENABLE == 0  // SJF
     // Print thread info for SJF
     puts("[PID = ");
-    puti(current->pid);
+    putd(current->pid);
     puts("] ");
     puts("Context Calculation: ");
     puts("counter = ");
-    puti(current->counter);
+    putd(current->counter);
     puts("\n");
 
     // Decrease counter and schedule
@@ -116,21 +116,21 @@ void schedule(void) {
                 task[i]->counter = rand();
 
                 puts("[PID = ");
-                puti(task[i]->pid);
+                putd(task[i]->pid);
                 puts("] Reset counter = ");
-                puti(task[i]->counter);
+                putd(task[i]->counter);
                 puts("\n");
             }
         schedule();
     } else {
         puts("[!] Switch from task ");
-        puti(current->pid);
+        putd(current->pid);
         puts(" to task ");
-        puti(task[i_min_cnt]->pid);
+        putd(task[i_min_cnt]->pid);
         puts(", prio: ");
-        puti(task[i_min_cnt]->priority);
+        putd(task[i_min_cnt]->priority);
         puts(", counter: ");
-        puti(task[i_min_cnt]->counter);
+        putd(task[i_min_cnt]->counter);
         puts("\n");
 
         switch_to(task[i_min_cnt]);
@@ -149,21 +149,21 @@ void schedule(void) {
 
     // Must be printed here to meet demands, else the printed info is out-dated
     puts("[!] Switch from task ");
-    puti(current->pid);
+    putd(current->pid);
     puts(" [task struct: ");
     putx((unsigned long)&current);
     puts(", sp: ");
     putx(current->thread.sp);
     puts("] to task ");
-    puti(task[i_min_cnt]->pid);
+    putd(task[i_min_cnt]->pid);
     puts(" [task struct: ");
     putx((unsigned long)&task[i_min_cnt]);
     puts(", sp: ");
     putx(task[i_min_cnt]->thread.sp);
     puts("], prio: ");
-    puti(task[i_min_cnt]->priority);
+    putd(task[i_min_cnt]->priority);
     puts(", counter: ");
-    puti(task[i_min_cnt]->counter);
+    putd(task[i_min_cnt]->counter);
     puts("\n");
 
     // Use another loop to update prio
@@ -176,12 +176,12 @@ void schedule(void) {
     for (int i = 1; i <= LAB_TEST_NUM; i++)
         if (task[i]->state == TASK_RUNNING) {
             puts("[PID = ");
-            puti(task[i]->pid);
+            putd(task[i]->pid);
             puts("] ");
             puts("counter = ");
-            puti(task[i]->counter);
+            putd(task[i]->counter);
             puts(" priority = ");
-            puti(task[i]->priority);
+            putd(task[i]->priority);
             puts("\n");
         }
     switch_to(task[i_min_cnt]);

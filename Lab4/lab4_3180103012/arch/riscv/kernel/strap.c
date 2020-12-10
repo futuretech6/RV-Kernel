@@ -11,7 +11,7 @@
 void strap_TimerInt(void) {
     static int counter = 0;
     puts("[S] Supervisor Mode Timer Interrupt ");
-    puti(counter++);
+    putd(counter++);
     puts("\n");
     return;
 }

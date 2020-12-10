@@ -1,7 +1,10 @@
 # Makefile_lab4
 # ln -s ~/lab4/.gdbinit ~/.gdbinit
+# sed -i '$aalias md=make\ debug' ~/.bashrc
 # sed -i '$aalias gdb=/opt/riscv/bin/riscv64-unknown-linux-gnu-gdb' ~/.bashrc
+# sed -i '$aalias gv=/opt/riscv/bin/riscv64-unknown-linux-gnu-gdb\ vmlinux' ~/.bashrc
 # sed -i '$aalias objdump=/opt/riscv/bin/riscv64-unknown-linux-gnu-objdump' ~/.bashrc
+# sed -i '$aalias ov=/opt/riscv/bin/riscv64-unknown-linux-gnu-objdump\ -S\ vmlinux' ~/.bashrc
 export TOP=$(shell pwd)
 export RISCV=/opt/riscv
 export PATH:=${PATH}:${RISCV}/bin
@@ -12,6 +15,7 @@ AR=${CROSS_}ar
 CC=${CROSS_}gcc
 LD=${CROSS_}ld
 OBJCOPY=${CROSS_}objcopy
+OBJDUMP=${CROSS_}objdump
 
 ISA ?= rv64imafd
 ABI ?= lp64
@@ -24,11 +28,13 @@ CFLAG = ${CF} ${INCLUDE} -g
 
 .PHONY: all
 all:
-	@make -C ./lib/
-	@make -C ./init/
-	@make -C ./arch/riscv/kernel/
-	@make -C ./arch/riscv/
+	@make -C ${TOP}/lib/
+	@make -C ${TOP}/init/
+	@make -C ${TOP}/arch/riscv/kernel/
+	@make -C ${TOP}/arch/riscv/
 	@echo "\e[35m==== Build Successfully ====\e[0m"
+	${OBJDUMP} -S ${TOP}/vmlinux > ${TOP}/dasm.S
+	@echo "\e[35m==== DeAsm Successfully ====\e[0m"
 
 .PHONY: run
 run:
@@ -43,9 +49,9 @@ debug:
 
 .PHONY: clean
 clean:
-	@rm -f ./vmlinux ./System.map
-	@make -C ./init/ clean
-	@make -C ./lib/ clean
-	@make -C ./arch/riscv/kernel/ clean
-	@make -C ./arch/riscv/ clean
+	@rm -f ${TOP}/vmlinux ${TOP}/System.map ${TOP}/dasm.S
+	@make -C ${TOP}/init/ clean
+	@make -C ${TOP}/lib/ clean
+	@make -C ${TOP}/arch/riscv/kernel/ clean
+	@make -C ${TOP}/arch/riscv/ clean
 	@echo "\e[36m==== Clean Successfully ====\e[0m"

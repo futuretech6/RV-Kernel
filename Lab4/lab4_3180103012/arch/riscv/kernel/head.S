@@ -28,7 +28,7 @@ _start:
 
     # set delegation of instruction/load/store page fault
     la t1, medeleg_bit
-    csrs mideleg, t1  # just set is ok
+    csrs medeleg, t1  # just set is ok
 
     # set mstatus.mpie
     li t1, 0x80  # mstatus[7]
@@ -67,6 +67,9 @@ S_Mode:
     la t1, trap_s  # mode = directed
     csrw stvec, t1
 
+    # set sp for `paging_init()` in Physical Space !!!!!
+    la sp, init_stack_top
+
     # init page mapping **using physical address**
     call paging_init
 
@@ -81,7 +84,7 @@ S_Mode:
     csrw satp, t0
 
     # set sp to stack_top in virtual space
-    la sp, init_stack_top
+    la sp, stack_top
 
     # jump to start_kernel in main.c
     call start_kernel
