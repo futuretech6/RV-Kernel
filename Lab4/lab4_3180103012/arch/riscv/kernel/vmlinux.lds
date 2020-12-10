@@ -13,35 +13,35 @@ PHDRS {
 SECTIONS {
     . = 0xffffffe000000000;
     .text : {
-    PROVIDE(text_start = .);
-    *(.text.init)
-    *(.text.entry)
-    *(.text .text.*)
-    PROVIDE(text_end = .);
+        PROVIDE(text_start = .);
+        *(.text.init)
+        *(.text.entry)
+        *(.text .text.*)
+        PROVIDE(text_end = .);
     } >ramv AT>ram :text
-    .rodata : ALIGN(0x1000) {
-    PROVIDE(rodata_start = .);
-    . = ALIGN(16);
-    *(.srodata .srodata.*)
-    . = ALIGN(16);
-    *(.rodata .rodata.*)
-    PROVIDE(rodata_end = .);
+        .rodata : ALIGN(0x1000) {
+        PROVIDE(rodata_start = .);
+        . = ALIGN(16);
+        *(.srodata .srodata.*)
+        . = ALIGN(16);
+        *(.rodata .rodata.*)
+        PROVIDE(rodata_end = .);
     } >ramv AT>ram :rodata
-    .data : ALIGN(0x1000) {
-    PROVIDE(data_start = .);
-    . = ALIGN(16);
-    *(.sdata .sdata.*)
-    . = ALIGN(16);
-    *(.data .data.*)
-    PROVIDE(data_end = .);
+        .data : ALIGN(0x1000) {
+        PROVIDE(data_start = .);
+        . = ALIGN(16);
+        *(.sdata .sdata.*)
+        . = ALIGN(16);
+        *(.data .data.*)
+        PROVIDE(data_end = .);
     } >ramv AT>ram :data
     .bss : ALIGN(0x1000) {
-    PROVIDE(bss_start = .);
-    . = ALIGN(16);
-    *(.sbss .sbss.*)
-    . = ALIGN(16);
-    *(.bss .bss.*)
-    PROVIDE(bss_end = .);
+        PROVIDE(bss_start = .);
+        . = ALIGN(16);
+        *(.sbss .sbss.*)
+        . = ALIGN(16);
+        *(.bss .bss.*)
+        PROVIDE(bss_end = .);
     } >ramv AT>ram :bss
     . = ALIGN(0x1000);
     . += 0x1000;
@@ -50,13 +50,14 @@ SECTIONS {
     stack_top = .;
     _end = .;
 
-    bss_size = 0x100;
+    bss_size = 0x1000;
     mtime_addr = 0x200bff8;
     mtimecmp_addr = 0x2004000;
     time_sep_init = 1000000;
     time_sep = 100000;
     mcause_MTimer  = 7;
     mcause_ecallS  = 9;
+    mcause_ldFault = 5;
     scause_STimer  = 5;
     scause_instPF  = 12;
     scause_loadPF  = 13;

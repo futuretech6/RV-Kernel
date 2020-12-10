@@ -5,14 +5,14 @@ _start:
     # turn off MMU
     csrw satp, zero
 
-    # init .bss
-    la t0, .bss      # pointer
-    la t1, bss_size  # counter
-    bss_init_loop:
-        sb zero, 0(t0)
-        addi t0, t0, 1
-        addi t1, t1, -1
-        bne t1, zero, bss_init_loop
+    # # init .bss
+    # la t0, .bss      # pointer
+    # la t1, bss_size  # counter
+    # bss_init_loop:
+    #     sb zero, 0(t0)
+    #     addi t0, t0, 1
+    #     addi t1, t1, -1
+    #     bne t1, zero, bss_init_loop
 
     # set mtimecmp to mtime+time_sep
     la t0, mtime_addr  # RV64, t0 is of 64 bit
@@ -70,15 +70,15 @@ S_Mode:
     # init page mapping **using physical address**
     call paging_init
 
-    # # set satp to turn on MMU
-    # or t0, zero, 8       # mode=satp[63:60] = 8
-    # sll t0, t0, 16
-    # ori t0, t0, 0        # ASID=satp[59:44] = 0
-    # sll t0, t0, 44
-    # la t1, _end
-    # srl t1, t1, 12 #???????????
-    # or t0, t0, t1  # PPN=satp[43:0] = 0x80000000 >> 12 = 0x80000, in unit 4KB(>>12)
-    # csrw satp, t0
+    # set satp to turn on MMU
+    ori t0, zero, 8  # mode=satp[63:60] = 8
+    sll t0, t0, 16
+    ori t0, t0, 0    # ASID=satp[59:44] = 0
+    sll t0, t0, 44
+    la t1, _end
+    srl t1, t1, 12   # 
+    or t0, t0, t1    # PPN=satp[43:0] = 0x80000000 >> 12 = 0x80000, in unit 4KB(>>12)
+    csrw satp, t0
 
     # set sp to stack_top in virtual space
     la sp, init_stack_top

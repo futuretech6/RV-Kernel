@@ -19,7 +19,7 @@ struct free_list_node {
 /**
  * @brief
  *   63      54 53        28 27        19 18        10 9    8 7 6 5 4 3 2 1 0
- *  -----------------------------------------------------------------------
+ *   -----------------------------------------------------------------------
  * | Reserved |   PPN[2]   |   PPN[1]   |   PPN[0]   | RSW |D|A|G|U|X|W|R|V|
  *  -----------------------------------------------------------------------
  *
@@ -39,6 +39,7 @@ struct pageTable {
 // #define PAtoPPN2(__pa) (((__pa) >> 30) % 0x4000000)
 // #define PAtoPPN1(__pa) (((__pa) >> 21) % PAGE_SIZE)
 // #define PAtoPPN0(__pa) (((__pa) >> 12) % PAGE_SIZE)
+
 #define PAtoPPN(__pa) ((uint64)(__pa) >> 12)
 #define PAtoOffset(__pa) ((uint64)(__pa) % 0x1000)
 
@@ -48,6 +49,7 @@ struct pageTable {
 //     { __pte = ((__pte)&0xfffffffff007ffff) | ((__ppn1) << 19); }
 // #define PPN0toPTE(__pte, __ppn0) \
 //     { __pte = ((__pte)&0xfffffffffff803ff) | ((__ppn0) << 10); }
+
 #define PPNtoPTE(__pte, __ppn) \
     { __pte = ((uint64)(__pte)&0xffc0000000003ff) | ((uint64)(__ppn) << 10); }
 // {RSW, D, A, G, U, X, W, R, V} = {6'b0, PERM_X|W|R, V}

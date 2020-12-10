@@ -8,6 +8,7 @@
  * @ref http://www.five-embeddev.com/riscv-isa-manual/latest/supervisor.html#sv32algorithm
  */
 #include "vm.h"
+#include "put.h"
 
 void *kalloc_byte(size_t size) {
     static struct free_list_node *free_list = NULL;
@@ -32,21 +33,21 @@ void memset_byte(void *s, uint8 c, size_t n) {
 }
 
 uint64 *page_walk(uint64 *pgtbl, uint64 va, _Bool alloc) {
-    for (int level = 2; level > 0; level--) {
+    for (int level = 2; level > 0; level--, pgtbl = (uint64 *)((uint64)pgtbl + PAGE_SIZE)) {
         uint64 *pte;
         switch (level) {
             case 2: pte = &pgtbl[VAtoVPN2(va)]; break;
             case 1: pte = &pgtbl[VAtoVPN1(va)]; break;
         }
-        if (PTEtoV(*pte))
-            pgtbl = (uint64 *)PTEtoPA(*pte);
-        else {
-            // throw exception
-            if (!alloc || (pgtbl == (uint64 *)kalloc_byte(PAGE_SIZE)) == NULL)
-                return 0;
-            memset_byte(pgtbl, (uint8)0, PAGE_SIZE);
-            LoadPTE(*pte, PAtoPPN(pgtbl), 0, 1);
-        }
+        // Don' check
+        // if (PTEtoV(*pte))
+        //     pgtbl = (uint64 *)PTEtoPA(*pte);
+        // else {  // Invalid
+        //     if (!alloc || (pgtbl == (uint64 *)kalloc_byte(PAGE_SIZE)) == NULL)
+        //         return NULL;
+        // memset_byte(pgtbl, (uint8)0, PAGE_SIZE);
+        LoadPTE(*pte, PAtoPPN((uint64)pgtbl + PAGE_SIZE), 0, 1);
+        // }
     }
     return &pgtbl[VAtoVPN0(va)];
 }
@@ -63,11 +64,11 @@ uint64 *page_walk(uint64 *pgtbl, uint64 va, _Bool alloc) {
 int create_mapping(uint64 *pgtbl, uint64 va, uint64 pa, uint64 sz, int perm) {
     uint64 *pte;  // PTE of level0
 
-    for (uint64 addr = Page_Floor(va); addr != Page_Floor(va + sz - 1);
-         addr += PAGE_SIZE, pa += PAGE_SIZE) {
-        if ((pte = page_walk(pgtbl, addr, 1)) == 0)
+    for (uint64 v_addr = Page_Floor(va); v_addr != Page_Floor(va + sz - 1);
+         v_addr += PAGE_SIZE, pa += PAGE_SIZE, pgtbl += PAGE_SIZE) {
+        if ((pte = page_walk(pgtbl, v_addr, 1)) == NULL)  // Alloc error
             return -1;
-        if (PTEtoV(*pte)) {
+        if (PTEtoV(*pte)) {  // Invalid, page fault
             // remap error?
         }
         LoadPTE(*pte, PAtoPPN(pa), perm, 1);
@@ -91,10 +92,14 @@ int create_mapping(uint64 *pgtbl, uint64 va, uint64 pa, uint64 sz, int perm) {
  *
  */
 void paging_init(void) {
+    uint64 *_end_addr;
+    asm("la t0, _end");
+    asm("sd t0, %0" ::"m"(_end_addr));
+    putx((uint64)_end_addr);
     create_mapping(  // 等值映射
-        NULL, 0x80000000, 0x80000000, 0x1000000, PERM_R | PERM_W | PERM_X);
+        _end_addr, 0x80000000, 0x80000000, 0x1000000, PERM_R | PERM_W | PERM_X);
     create_mapping(  // 高位映射
-        NULL, 0xffffffe000000000, 0x80000000, 0x1000000, PERM_R | PERM_W | PERM_X);
+        _end_addr, 0xffffffe000000000, 0x80000000, 0x1000000, PERM_R | PERM_W | PERM_X);
     create_mapping(  // 映射UART
-        NULL, 0x10000000, 0x10000000, 0x1000000, PERM_R | PERM_W | PERM_X);
+        _end_addr, 0x10000000, 0x10000000, 0x1000000, PERM_R | PERM_W | PERM_X);
 }
