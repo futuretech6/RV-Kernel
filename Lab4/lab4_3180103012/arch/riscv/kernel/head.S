@@ -90,6 +90,9 @@ S_Mode:
     or t0, t0, t1    # PPN=satp[43:0] = 0x80000000 >> 12 = 0x80000, in unit 4KB(>>12)
     csrw satp, t0
 
+    call print_debug
+
+    
     # load phy2vir_diff to t2
     li t2, 0xffffffdf80000000
 

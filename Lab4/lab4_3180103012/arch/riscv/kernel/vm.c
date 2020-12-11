@@ -13,6 +13,9 @@
 #if PAGING_DEBUG
 struct free_list_node *free_list_debug;
 #endif
+void print_debug(void) {
+    puts("\nPrint debug: whatever\n");
+}
 
 /**
  * @brief Alloc physical memory space for kernel
@@ -33,13 +36,12 @@ void *kalloc_byte(size_t size) {
         free_list->limit = FREE_SPACE_SIZE;
         free_list->next  = NULL;
     }
-    for (struct free_list_node *p = free_list; p; p = free_list->next) {
+    for (struct free_list_node *p = free_list; p; p = free_list->next)
         if (p->limit >= size) {
             p->limit -= size;
-            return (void *)((uint8 *)p->base + p->limit - size);
+            return (void *)((uint8 *)(p->base = (uint8 *)p->base + size) - size);
         } else
             return NULL;
-    }
 }
 
 /**
@@ -74,15 +76,16 @@ uint64 *page_walk(uint64 *pgtbl, uint64 va) {
         putd(level);
         puts("\npgtbl: ");
         putx(pgtbl);
-        puts("\nva: ");
-        putx(va);
+        puts("\nVPN: ");
+        putx(VAtoVPN2(va));
+        putx(VAtoVPN1(va));
         puts("\npte_addr: ");
         putx(pte_addr);
         puts("\n*pte_addr: ");
         putx(*pte_addr);
         puts("\n");
 #endif
-        // Update next level's pgtbl
+        // Update `pgtbl` to be next level's pg tbl's base
         if (PTEtoV(*pte_addr)) {  // Valid PTE, next level PT has been constructed
 #if PAGING_DEBUG
             puts("Valid PTE\n");
@@ -90,7 +93,7 @@ uint64 *page_walk(uint64 *pgtbl, uint64 va) {
             pgtbl = (uint64 *)(PTEtoPPN(*pte_addr) << 12);
         } else {  // Invalid PTE, need to construct next level PT
             if ((pgtbl = (uint64 *)kalloc_byte(PAGE_SIZE)) == NULL)
-                return NULL;
+                return NULL;  // Insufficient free space for pg tbls
             memset_byte(pgtbl, 0, PAGE_SIZE);
 #if PAGING_DEBUG
             puts("Invalid PTE");
@@ -114,7 +117,7 @@ uint64 *page_walk(uint64 *pgtbl, uint64 va) {
  * @param pgtbl Base addr of level-2 page table
  * @param va Mapping from
  * @param pa Mapping to
- * @param sz Mapping size
+ * @param sz Mapping size, ceil to PAGE_SIZE
  * @param perm Mapping permission: XWR
  */
 void create_mapping(uint64 *pgtbl, uint64 va, uint64 pa, uint64 sz, int perm) {
@@ -165,14 +168,12 @@ void create_mapping(uint64 *pgtbl, uint64 va, uint64 pa, uint64 sz, int perm) {
  *
  */
 void paging_init(void) {
-    uint64 *_end_addr;
-    asm("la t0, _rt_pg_addrend");
-    asm("sd t0, %0" ::"m"(_end_addr));
+    uint64 *rtpg_addr = (uint64 *)kalloc_byte(PAGE_SIZE);
     create_mapping(  // 等值映射
-        _end_addr, MAPPING_BASE_P, MAPPING_BASE_P, MAPPING_LIMIT, PERM_R | PERM_W | PERM_X);
+        rtpg_addr, MAPPING_BASE_P, MAPPING_BASE_P, MAPPING_LIMIT, PERM_R | PERM_W | PERM_X);
     create_mapping(  // 高位映射
-        _end_addr, MAPPING_BASE_V, MAPPING_BASE_P, MAPPING_LIMIT, PERM_R | PERM_W | PERM_X);
+        rtpg_addr, MAPPING_BASE_V, MAPPING_BASE_P, MAPPING_LIMIT, PERM_R | PERM_W | PERM_X);
     create_mapping(  // 映射UART
-        _end_addr, (uint64)UART_ADDR, (uint64)UART_ADDR, 0x1, PERM_R);
-    puts("=================================");
+        rtpg_addr, (uint64)UART_ADDR, (uint64)UART_ADDR, PAGE_SIZE, PERM_R | PERM_W);
+    puts("\n=================================\n");
 }

@@ -39,11 +39,8 @@ struct pageTable {
 #define VAtoVPN2(__va) (((uint64)(__va) >> 30) & (PAGE_ENTRY_NUM - 1))
 #define VAtoVPN1(__va) (((uint64)(__va) >> 21) & (PAGE_ENTRY_NUM - 1))
 #define VAtoVPN0(__va) (((uint64)(__va) >> 12) & (PAGE_ENTRY_NUM - 1))
-#define VAtoVPN(__va) ((uint64)(__va) >> 12)
-#define VAtoOffset(__va) ((uint64)(__va) & (PAGE_SIZE - 1))
 
 #define PAtoPPN(__pa) ((uint64)(__pa) >> 12)  // PPN need no division
-#define PAtoOffset(__pa) ((uint64)(__pa) & (PAGE_SIZE - 1))
 
 // __perm = {RSW, D, A, G, U, X, W, R, V} = {6'b0, PERM_X|W|R, V}
 #define LoadPTE(__pte_addr, __ppn, __perm, __v)                                     \
