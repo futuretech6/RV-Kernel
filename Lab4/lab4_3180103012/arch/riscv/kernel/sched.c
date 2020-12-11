@@ -151,13 +151,13 @@ void schedule(void) {
     puts("[!] Switch from task ");
     putd(current->pid);
     puts(" [task struct: ");
-    putx((unsigned long)&current);
+    putx((unsigned long)current);
     puts(", sp: ");
     putx(current->thread.sp);
     puts("] to task ");
     putd(task[i_min_cnt]->pid);
     puts(" [task struct: ");
-    putx((unsigned long)&task[i_min_cnt]);
+    putx((unsigned long)task[i_min_cnt]);
     puts(", sp: ");
     putx(task[i_min_cnt]->thread.sp);
     puts("], prio: ");

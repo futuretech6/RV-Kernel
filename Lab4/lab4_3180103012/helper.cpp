@@ -6,6 +6,7 @@
 
 int main(int argc, char const *argv[]) {
     using namespace std;
+
     // L2
     uint64 VA = 0x80000ffc;
     printf("0x%lx 0x%lx\n", VAtoVPN2(VA), 0x80008000 + VAtoVPN2(VA) * 8);

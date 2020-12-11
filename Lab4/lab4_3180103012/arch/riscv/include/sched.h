@@ -1,9 +1,9 @@
 #ifndef _SCHED_H
 #define _SCHED_H
 
-#define TASK_BASE 0xffffffe000010000
+#define TASK_BASE 0xffffffe000ff0000
 #define TASK_SIZE (4096)
-#define THREAD_OFFSET (5 * 0x08)
+// #define THREAD_OFFSET (5 * 0x08)
 
 #ifndef __ASSEMBLER__
 

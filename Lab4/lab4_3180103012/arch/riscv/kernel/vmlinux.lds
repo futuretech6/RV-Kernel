@@ -59,10 +59,10 @@ SECTIONS {
 
     rt_pg_addr = _end;
 
-    mtime_addr = 0x200bff8;
+    mtime_addr    = 0x200bff8;
     mtimecmp_addr = 0x2004000;
     time_sep_init = 1000000;
-    time_sep = 100000;
+    time_sep      = 100000;
 
     mcause_i_MTimer  = 7;
 

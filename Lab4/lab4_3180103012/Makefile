@@ -49,7 +49,7 @@ debug:
 
 .PHONY: clean
 clean:
-	@rm -f ${TOP}/vmlinux ${TOP}/System.map ${TOP}/dasm.S
+	@rm -f ${TOP}/vmlinux ${TOP}/System.map ${TOP}/dasm.S ${TOP}/*.out
 	@make -C ${TOP}/init/ clean
 	@make -C ${TOP}/lib/ clean
 	@make -C ${TOP}/arch/riscv/kernel/ clean
