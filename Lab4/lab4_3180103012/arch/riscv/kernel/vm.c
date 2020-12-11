@@ -169,11 +169,11 @@ void create_mapping(uint64 *pgtbl, uint64 va, uint64 pa, uint64 sz, int perm) {
  */
 void paging_init(void) {
     uint64 *rtpg_addr = (uint64 *)kalloc_byte(PAGE_SIZE);
-    create_mapping(  // 等值映射
-        rtpg_addr, MAPPING_BASE_P, MAPPING_BASE_P, MAPPING_LIMIT, PERM_R | PERM_W | PERM_X);
-    create_mapping(  // 高位映射
-        rtpg_addr, MAPPING_BASE_V, MAPPING_BASE_P, MAPPING_LIMIT, PERM_R | PERM_W | PERM_X);
     create_mapping(  // 映射UART
         rtpg_addr, (uint64)UART_ADDR, (uint64)UART_ADDR, PAGE_SIZE, PERM_R | PERM_W);
+    create_mapping(  // 高位映射
+        rtpg_addr, MAPPING_BASE_V, MAPPING_BASE_P, MAPPING_LIMIT, PERM_R | PERM_W | PERM_X);
+    create_mapping(  // 等值映射
+        rtpg_addr, MAPPING_BASE_P, MAPPING_BASE_P, MAPPING_LIMIT, PERM_R | PERM_W | PERM_X);
     puts("\n=================================\n");
 }

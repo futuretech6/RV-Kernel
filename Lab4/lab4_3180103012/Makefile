@@ -1,6 +1,6 @@
 # Makefile_lab4
 # ln -s ~/lab4/.gdbinit ~/.gdbinit
-# sed -i '$aalias md=make\ debug' ~/.bashrc
+# sed -i '$aalias md=make\ &&\ make\ debug' ~/.bashrc
 # sed -i '$aalias gdb=/opt/riscv/bin/riscv64-unknown-linux-gnu-gdb' ~/.bashrc
 # sed -i '$aalias gv=/opt/riscv/bin/riscv64-unknown-linux-gnu-gdb\ vmlinux' ~/.bashrc
 # sed -i '$aalias objdump=/opt/riscv/bin/riscv64-unknown-linux-gnu-objdump' ~/.bashrc
