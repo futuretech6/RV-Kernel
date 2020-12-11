@@ -4,11 +4,15 @@
 #define MAPPING_BASE_V 0xffffffe000000000
 #define MAPPING_LIMIT 0x1000000  // 16MB
 
+#define PAGE_SIZE 0x1000      // 4096 bytes
+#define PAGE_ENTRY_NUM 0x200  // 512
+
+// #define FREE_SPACE_SIZE 0x8000000  // 128MB
+#define FREE_SPACE_SIZE 0x80000  // [rt_pg_addr, rt_pg_addr + limit): 512K
+
 #define PERM_R 0b10
 #define PERM_W 0b100
 #define PERM_X 0b1000
-
-#define PAGE_SIZE 0x1000  // 4096 bytes
 
 #define PAGING_DEBUG 0
 
@@ -30,29 +34,25 @@ struct pageTable {
     uint64 PTE_list[512];
 };
 
-#define Page_Floor(__addr) ((uint64)__addr & ~(uint64)(PAGE_SIZE - 1))
+#define Page_Floor(__addr) ((uint64)(__addr) & ~(uint64)(PAGE_SIZE - 1))
 
-#define VAtoVPN2(__va) (((uint64)(__va) >> 30) & (PAGE_SIZE - 1))
-#define VAtoVPN1(__va) (((uint64)(__va) >> 21) & (PAGE_SIZE - 1))
-#define VAtoVPN0(__va) (((uint64)(__va) >> 12) & (PAGE_SIZE - 1))
+#define VAtoVPN2(__va) (((uint64)(__va) >> 30) & (PAGE_ENTRY_NUM - 1))
+#define VAtoVPN1(__va) (((uint64)(__va) >> 21) & (PAGE_ENTRY_NUM - 1))
+#define VAtoVPN0(__va) (((uint64)(__va) >> 12) & (PAGE_ENTRY_NUM - 1))
 #define VAtoVPN(__va) ((uint64)(__va) >> 12)
 #define VAtoOffset(__va) ((uint64)(__va) & (PAGE_SIZE - 1))
 
 #define PAtoPPN(__pa) ((uint64)(__pa) >> 12)  // PPN need no division
 #define PAtoOffset(__pa) ((uint64)(__pa) & (PAGE_SIZE - 1))
 
-#define PPNtoPTE(__pte, __ppn) \
-    { __pte = ((uint64)(__pte)&0xffc0000000003ff) | ((uint64)(__ppn) << 10); }
-// {RSW, D, A, G, U, X, W, R, V} = {6'b0, PERM_X|W|R, V}
-#define PROTtoPTE(__pte, __perm, __v) \
-    { __pte = ((uint64)(__pte)&0xfffffffffffffc00) | ((uint64)(__perm) | (uint64)(__v)); }
-#define LoadPTE(__pte, __ppn, __perm, __v) \
-    {                                      \
-        PPNtoPTE(__pte, __ppn);            \
-        PROTtoPTE(__pte, __perm, __v);     \
+// __perm = {RSW, D, A, G, U, X, W, R, V} = {6'b0, PERM_X|W|R, V}
+#define LoadPTE(__pte_addr, __ppn, __perm, __v)                                     \
+    {                                                                               \
+        *__pte_addr = ((uint64)(*__pte_addr) & 0xffc0000000000000) |                \
+                      ((uint64)(__ppn) << 10) | ((uint64)(__perm) | (uint64)(__v)); \
     }
 
-#define PTEtoPPN(__pte) (((uint64)(__pte)&0x003ffffffffffc00) >> 10)
+#define PTEtoPPN(__pte) (((uint64)(__pte) >> 10) & 0xfffffffffff)
 #define PTEtoV(__pte) ((uint64)(__pte)&0x1)
 
 // extern struct pageTable *pRootPT;

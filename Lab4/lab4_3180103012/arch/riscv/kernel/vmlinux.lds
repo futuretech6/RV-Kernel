@@ -52,6 +52,13 @@ SECTIONS {
 
     bss_size = 0x1000;
 
+    physical_base = 0x80000000;
+    virtual_mask  = 0xffffff8000000000;
+    virtual_base  = 0xffffffe000000000;
+    phy2vir_diff  = 0xffffffdf80000000;
+
+    rt_pg_addr = _end;
+
     mtime_addr = 0x200bff8;
     mtimecmp_addr = 0x2004000;
     time_sep_init = 1000000;
@@ -60,8 +67,8 @@ SECTIONS {
     mcause_i_MTimer  = 7;
 
     mcasue_e_inst    = 2;
-    mcause_e_ecallS  = 9;
     mcause_e_ldFault = 5;
+    mcause_e_ecallS  = 9;
     mcause_e_loadPF  = 13;
 
     scause_i_STimer  = 5;

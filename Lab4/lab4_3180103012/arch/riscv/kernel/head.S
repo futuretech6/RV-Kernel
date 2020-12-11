@@ -5,14 +5,14 @@ _start:
     # turn off MMU
     csrw satp, zero
 
-    # # init .bss
-    # la t0, .bss      # pointer
-    # la t1, bss_size  # counter
-    # bss_init_loop:
-    #     sb zero, 0(t0)
-    #     addi t0, t0, 1
-    #     addi t1, t1, -1
-    #     bne t1, zero, bss_init_loop
+    # init .bss
+    la t0, .bss      # pointer
+    la t1, bss_size  # counter
+    bss_init_loop:
+        sb zero, 0(t0)
+        addi t0, t0, 1
+        addi t1, t1, -1
+        bne t1, zero, bss_init_loop
 
     # set mtimecmp to mtime+time_sep
     la t0, mtime_addr  # RV64, t0 is of 64 bit
@@ -37,8 +37,8 @@ _start:
     # set mstatus.mie, mie.mtie, sstatus.sie, sie.stie
     li t1, 0x8   # mstatus[3]
     csrs mstatus, t1
-    li t1, 0x80  # mie[7]
-    csrs mie, t1
+    # li t1, 0x80  # mie[7]
+    # csrs mie, t1
     li t1, 0x2   # sstatus[1]
     csrs sstatus, t1
     li t1, 0x20  # sie[5]
@@ -63,8 +63,8 @@ _start:
     mret
 
 S_Mode:
-    # set stvec(S mode)
-    la t1, trap_s  # mode = directed
+    # set stvec(physical)
+    la t1, trap_s   # mode = directed
     csrw stvec, t1
 
     # set sp for `paging_init()` in Physical Space !!!!!
@@ -73,21 +73,41 @@ S_Mode:
     # init page mapping **using physical address**
     call paging_init
 
+    # # set timer int deleg after paging init
+    # li t1, 0x2   # sstatus[1]
+    # csrs sstatus, t1
+    # li t1, 0x20  # sie[5]
+    # csrs sie, t1
+    ecall
+
     # set satp to turn on MMU
     ori t0, zero, 8  # mode=satp[63:60] = 8
     sll t0, t0, 16
     ori t0, t0, 0    # ASID=satp[59:44] = 0
     sll t0, t0, 44
-    la t1, _end
+    la t1, rt_pg_addr
     srl t1, t1, 12   # 
     or t0, t0, t1    # PPN=satp[43:0] = 0x80000000 >> 12 = 0x80000, in unit 4KB(>>12)
     csrw satp, t0
 
-    # set sp to stack_top in virtual space
-    la sp, stack_top
+    # load phy2vir_diff to t2
+    li t2, 0xffffffdf80000000
+
+    # set stvec(virtual)
+    la t1, trap_s   # mode = directed
+    add t1, t1, t2  # convert to virtual
+    csrw stvec, t1
+
+    # set sp to init_stack_top in virtual space
+    la sp, init_stack_top
+    add sp, sp, t2  # convert to virtual
 
     # jump to start_kernel in main.c
-    call start_kernel
+    la t1, start_kernel
+    add t1, t1, t2  # convert to virtual
+    jr t1
+    # call start_kernel
+
 
 .global _end
 _end:

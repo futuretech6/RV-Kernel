@@ -10,6 +10,7 @@ thread_init:
 trap_m:
     # Exchange sp and mscratch to use physical stack
     csrrw sp, mscratch, sp
+
     # Save regs
     addi sp, sp, -264
     sd x1, 256(sp)
@@ -81,11 +82,11 @@ trap_m:
             li s0, 0x20   # sip[5]
             csrc mip, s0  # Stop from calling trap_s
 
-            # set mtimecmp += time_sep, hardware will clear mip.mtip
+            # set mtimecmp = mtime + time_sep, hardware will clear mip.mtip
             la s0, mtime_addr
-            ld s0, 0(s0)    # s0 = mtimecmp
+            ld s0, 0(s0)    # s0 = mtime
             la s1, time_sep
-            add s1, s0, s1  # s1 = mtimecmp+sep
+            add s1, s0, s1  # s1 = mtime+sep
             la s0, mtimecmp_addr
             sd s1, 0(s0)
 
