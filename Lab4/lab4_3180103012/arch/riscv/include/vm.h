@@ -2,12 +2,12 @@
 
 #define MAPPING_BASE_P 0x80000000
 #define MAPPING_BASE_V 0xffffffe000000000
-#define MAPPING_LIMIT 0x1000000  // 16MB
+#define MAPPING_SIZE 0x1000000  // 16MB
 
 #define PAGE_SIZE 0x1000      // 4096 bytes
 #define PAGE_ENTRY_NUM 0x200  // 512
 
-#define FREE_SPACE_SIZE 0x80000  // [rt_pg_addr, rt_pg_addr + limit): 512K
+#define FREE_SPACE_SIZE 0x800000  // [rt_pg_addr, rt_pg_addr + limit): 512K
 
 #define PERM_R 0b10
 #define PERM_W 0b100

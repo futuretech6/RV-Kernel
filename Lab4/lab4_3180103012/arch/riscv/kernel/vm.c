@@ -12,10 +12,10 @@
 
 #if PAGING_DEBUG
 struct free_list_node *free_list_debug;
-#endif
 void print_debug(void) {
     puts("\nPrint debug: whatever\n");
 }
+#endif
 
 /**
  * @brief Alloc physical memory space for kernel
@@ -165,15 +165,15 @@ void create_mapping(uint64 *pgtbl, uint64 va, uint64 pa, uint64 sz, int perm) {
 /**
  * @brief 将内核起始的0x80000000的16MB映射到0xffffffe000000000，同时也进行等值映射。
  * 将必要的硬件地址（如UART）进行等值映射，无偏移
- *
  */
 void paging_init(void) {
     uint64 *rtpg_addr = (uint64 *)kalloc_byte(PAGE_SIZE);
-    create_mapping(  // 映射UART
-        rtpg_addr, (uint64)UART_ADDR, (uint64)UART_ADDR, PAGE_SIZE, PERM_R | PERM_W);
-    create_mapping(  // 高位映射
-        rtpg_addr, MAPPING_BASE_V, MAPPING_BASE_P, MAPPING_LIMIT, PERM_R | PERM_W | PERM_X);
-    create_mapping(  // 等值映射
-        rtpg_addr, MAPPING_BASE_P, MAPPING_BASE_P, MAPPING_LIMIT, PERM_R | PERM_W | PERM_X);
-    puts("\n=================================\n");
+    create_mapping(rtpg_addr, (uint64)UART_ADDR, (uint64)UART_ADDR, PAGE_SIZE,
+        PERM_R | PERM_W);  // 映射UART
+    create_mapping(rtpg_addr, MAPPING_BASE_P, MAPPING_BASE_P, MAPPING_SIZE,
+        PERM_R | PERM_W | PERM_X);  // 等值映射
+    create_mapping(rtpg_addr, MAPPING_BASE_V, MAPPING_BASE_P, MAPPING_SIZE,
+        PERM_R | PERM_W | PERM_X);  // 高位映射
+
+    puts("\n>> Paging Init Done.\n");
 }

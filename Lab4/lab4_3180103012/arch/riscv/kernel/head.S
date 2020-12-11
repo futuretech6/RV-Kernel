@@ -37,8 +37,8 @@ _start:
     # set mstatus.mie, mie.mtie, sstatus.sie, sie.stie
     li t1, 0x8   # mstatus[3]
     csrs mstatus, t1
-    # li t1, 0x80  # mie[7]
-    # csrs mie, t1
+    li t1, 0x80  # mie[7]
+    csrs mie, t1
     li t1, 0x2   # sstatus[1]
     csrs sstatus, t1
     li t1, 0x20  # sie[5]
@@ -73,12 +73,8 @@ S_Mode:
     # init page mapping **using physical address**
     call paging_init
 
-    # # set timer int deleg after paging init
-    # li t1, 0x2   # sstatus[1]
-    # csrs sstatus, t1
-    # li t1, 0x20  # sie[5]
-    # csrs sie, t1
-    ecall
+    # # set enable mie.mtie after paging init
+    # ecall
 
     # set satp to turn on MMU
     ori t0, zero, 8  # mode=satp[63:60] = 8
@@ -90,9 +86,6 @@ S_Mode:
     or t0, t0, t1    # PPN=satp[43:0] = 0x80000000 >> 12 = 0x80000, in unit 4KB(>>12)
     csrw satp, t0
 
-    call print_debug
-
-    
     # load phy2vir_diff to t2
     li t2, 0xffffffdf80000000
 
@@ -109,7 +102,6 @@ S_Mode:
     la t1, start_kernel
     add t1, t1, t2  # convert to virtual
     jr t1
-    # call start_kernel
 
 
 .global _end
