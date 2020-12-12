@@ -7,7 +7,7 @@
 #define PAGE_SIZE 0x1000      // 4096 bytes
 #define PAGE_ENTRY_NUM 0x200  // 512
 
-#define FREE_SPACE_SIZE 0x800000  // [rt_pg_addr, rt_pg_addr + limit): 512K
+#define FREE_SPACE_SIZE 0x800000  // [rt_pg_addr, rt_pg_addr + limit): 8MB
 
 #define TEXT_SIZE 0x2000
 #define RODATA_SIZE 0x1000
