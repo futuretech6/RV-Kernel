@@ -123,15 +123,7 @@ void schedule(void) {
             }
         schedule();
     } else {
-        puts("[!] Switch from task ");
-        putd(current->pid);
-        puts(" to task ");
-        putd(task[i_min_cnt]->pid);
-        puts(", prio: ");
-        putd(task[i_min_cnt]->priority);
-        puts(", counter: ");
-        putd(task[i_min_cnt]->counter);
-        puts("\n");
+        PRINT_SWITCH_INFO();
 
         switch_to(task[i_min_cnt]);
     }
@@ -148,23 +140,7 @@ void schedule(void) {
                 i_min_cnt = i;
 
     // Must be printed here to meet demands, else the printed info is out-dated
-    puts("[!] Switch from task ");
-    putd(current->pid);
-    puts(" [task struct: ");
-    putx((unsigned long)current);
-    puts(", sp: ");
-    putx(current->thread.sp);
-    puts("] to task ");
-    putd(task[i_min_cnt]->pid);
-    puts(" [task struct: ");
-    putx((unsigned long)task[i_min_cnt]);
-    puts(", sp: ");
-    putx(task[i_min_cnt]->thread.sp);
-    puts("], prio: ");
-    putd(task[i_min_cnt]->priority);
-    puts(", counter: ");
-    putd(task[i_min_cnt]->counter);
-    puts("\n");
+    PRINT_SWITCH_INFO();
 
     // Use another loop to update prio
     for (int i = 1; i <= LAB_TEST_NUM; i++)

@@ -20,10 +20,10 @@
 #define TASK_ZOMBIE 3
 #define TASK_STOPPED 4
 
+// #define PRIORITY
+// #define SJF
+
 // Ensure Mutual Exclusion
-
-#define PRIORITY
-
 #ifdef SJF
 #define PREEMPT_ENABLE 0
 #else
@@ -124,6 +124,27 @@ void dead_loop(void);
         asm("ld s9, %0" : : "m"(pTask->thread.s9));   \
         asm("ld s10, %0" : : "m"(pTask->thread.s10)); \
         asm("ld s11, %0" : : "m"(pTask->thread.s11)); \
+    }
+
+#define PRINT_SWITCH_INFO()                   \
+    {                                         \
+        puts("[!] Switch from task ");        \
+        putd(current->pid);                   \
+        puts(" [task struct: ");              \
+        putx((unsigned long)current);         \
+        puts(", sp: ");                       \
+        putx(current->thread.sp);             \
+        puts("] to task ");                   \
+        putd(task[i_min_cnt]->pid);           \
+        puts(" [task struct: ");              \
+        putx((unsigned long)task[i_min_cnt]); \
+        puts(", sp: ");                       \
+        putx(task[i_min_cnt]->thread.sp);     \
+        puts("], prio: ");                    \
+        putd(task[i_min_cnt]->priority);      \
+        puts(", counter: ");                  \
+        putd(task[i_min_cnt]->counter);       \
+        puts("\n");                           \
     }
 
 #endif

@@ -4,6 +4,5 @@ target remote localhost:1234
 layout asm
 
 
-b *0x80000100
-b *0x800000d8
-b *0xffffffe000001000
+b *0xffffffe000001004
+b *0xffffffe000000ff4

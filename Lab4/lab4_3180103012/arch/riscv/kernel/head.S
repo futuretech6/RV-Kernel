@@ -73,8 +73,8 @@ S_Mode:
     # init page mapping **using physical address**
     call paging_init
 
-    # # set enable mie.mtie after paging init
-    # ecall
+    # refresh related cache
+    sfence.vma
 
     # set satp to turn on MMU
     ori t0, zero, 8  # mode=satp[63:60] = 8
@@ -82,7 +82,7 @@ S_Mode:
     ori t0, t0, 0    # ASID=satp[59:44] = 0
     sll t0, t0, 44
     la t1, rt_pg_addr
-    srl t1, t1, 12   # 
+    srl t1, t1, 12
     or t0, t0, t1    # PPN=satp[43:0] = 0x80000000 >> 12 = 0x80000, in unit 4KB(>>12)
     csrw satp, t0
 
@@ -98,7 +98,7 @@ S_Mode:
     la sp, init_stack_top
     add sp, sp, t2  # convert to virtual
 
-    # jump to start_kernel in main.c
+    # jump to start_kernel in virtual space
     la t1, start_kernel
     add t1, t1, t2  # convert to virtual
     jr t1

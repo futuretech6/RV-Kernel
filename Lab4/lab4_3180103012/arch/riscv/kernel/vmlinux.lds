@@ -19,7 +19,7 @@ SECTIONS {
         *(.text .text.*)
         PROVIDE(text_end = .);
     } >ramv AT>ram :text
-        .rodata : ALIGN(0x1000) {
+    .rodata : ALIGN(0x1000) {
         PROVIDE(rodata_start = .);
         . = ALIGN(16);
         *(.srodata .srodata.*)
@@ -27,7 +27,7 @@ SECTIONS {
         *(.rodata .rodata.*)
         PROVIDE(rodata_end = .);
     } >ramv AT>ram :rodata
-        .data : ALIGN(0x1000) {
+    .data : ALIGN(0x1000) {
         PROVIDE(data_start = .);
         . = ALIGN(16);
         *(.sdata .sdata.*)
@@ -43,6 +43,7 @@ SECTIONS {
         *(.bss .bss.*)
         PROVIDE(bss_end = .);
     } >ramv AT>ram :bss
+
     . = ALIGN(0x1000);
     . += 0x1000;
     init_stack_top = .;
