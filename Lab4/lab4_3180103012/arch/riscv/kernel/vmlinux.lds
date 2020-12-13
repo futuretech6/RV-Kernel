@@ -51,8 +51,6 @@ SECTIONS {
     stack_top = .;
     _end = .;
 
-    bss_size = 0x1000;
-
     physical_base = 0x80000000;
     virtual_mask  = 0xffffff8000000000;
     virtual_base  = 0xffffffe000000000;
