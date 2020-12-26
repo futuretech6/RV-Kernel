@@ -15,3 +15,8 @@ debug.log
 dasm.S
 Lab4/kos-riscv
 section.txt
+*.bin
+*.elf
+hello_section.txt
+vmlinux_section.txt
+Lab5/lab5_3180103012/user
