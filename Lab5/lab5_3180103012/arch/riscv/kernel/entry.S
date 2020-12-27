@@ -1,8 +1,11 @@
 .section .text.entry
+.equ reg_size, 0x8
 
 .global thread_init
 thread_init:
     li sp, 0xffffffdf80000000
+    li t0, 0x100
+    csrc sstatus, t0  # sstatus.SPP=0
     li t0, 0x4
     csrw sepc, t0
     sret
@@ -150,9 +153,10 @@ trap_m:
 
 .global trap_s
 trap_s:
-    # # Exchange sp and mscratch to use physical stack
-    # csrrw sp, sscratch, sp  # sp = addr of S sp, ssracth = U sp
-    # ld sp, 0(sp)
+    # Exchange sp and mscratch to use physical stack
+    # csrrw t3, sscratch, t3  # sp = addr of S sp, ssracth = U sp
+    # ld sp, 0(t3)
+    csrrw sp, sscratch, sp
 
     # Save regs
     addi sp, sp, -264
@@ -324,7 +328,54 @@ trap_s:
     ld x1, 256(sp)
     addi sp, sp, 264
 
-    # # Exchange sp and mscratch to use physical stack
-    # sd sp, 0(sp)
-    # csrrw sp, sscratch, sp
+    # Exchange sp and mscratch to use physical stack
+    # sd sp, 0(t3)
+    # csrrw t3, sscratch, t3
+    csrrw sp, sscratch, sp
     sret
+
+
+/*
+ * Integer register context switch
+ * The callee-saved registers must be saved and restored.
+ *
+ *   a0: previous task_struct (must be preserved across the switch)
+ *   a1: next task_struct
+ *
+ * The value of a0 and a1 must be preserved by this function, as that's how
+ * arguments are passed to schedule_tail.
+ */
+ .globl __switch_to
+__switch_to:
+    /* Save context into prev->thread */
+    sd ra,  0*reg_size(a0)
+    sd sp,  1*reg_size(a0)
+    sd s0,  2*reg_size(a0)
+    sd s1,  3*reg_size(a0)
+    sd s2,  4*reg_size(a0)
+    sd s3,  5*reg_size(a0)
+    sd s4,  6*reg_size(a0)
+    sd s5,  7*reg_size(a0)
+    sd s6,  8*reg_size(a0)
+    sd s7,  9*reg_size(a0)
+    sd s8,  10*reg_size(a0)
+    sd s9,  11*reg_size(a0)
+    sd s10, 12*reg_size(a0)
+    sd s11, 13*reg_size(a0)
+    /* Restore context from next->thread */
+    ld ra,  0*reg_size(a1)
+    ld sp,  1*reg_size(a1)
+    ld s0,  2*reg_size(a1)
+    ld s1,  3*reg_size(a1)
+    ld s2,  4*reg_size(a1)
+    ld s3,  5*reg_size(a1)
+    ld s4,  6*reg_size(a1)
+    ld s5,  7*reg_size(a1)
+    ld s6,  8*reg_size(a1)
+    ld s7,  9*reg_size(a1)
+    ld s8,  10*reg_size(a1)
+    ld s9,  11*reg_size(a1)
+    ld s10, 12*reg_size(a1)
+    ld s11, 13*reg_size(a1)
+
+    ret

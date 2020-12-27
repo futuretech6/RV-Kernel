@@ -1,6 +1,6 @@
 # Makefile_lib
-DEP = ./Makefile $(shell ls ${TOP}/include/*.h)
-SRC = $(shell ls *.c)
+DEP = ./Makefile $(wildcard ${TOP}/include/*.h)
+SRC = $(wildcard *.c)
 
 .PHONY: all clean
 

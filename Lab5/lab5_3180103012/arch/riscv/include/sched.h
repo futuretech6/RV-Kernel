@@ -96,46 +96,11 @@ void schedule(void);
 
 /* 切换当前任务current到下一个任务next */
 void switch_to(struct task_struct *next);
-void switch_to_asm();
+extern void __switch_to(struct thread_struct *prev_thread, struct thread_struct *next_thread);
 
 /* 死循环 */
 void dead_loop(void);
 
-#define CONTEXT_SAVE(pTask)                           \
-    {                                                 \
-        asm("sd ra, %0" : : "m"(pTask->thread.ra));   \
-        asm("sd sp, %0" : : "m"(pTask->thread.sp));   \
-        asm("sd s0, %0" : : "m"(pTask->thread.s0));   \
-        asm("sd s1, %0" : : "m"(pTask->thread.s1));   \
-        asm("sd s2, %0" : : "m"(pTask->thread.s2));   \
-        asm("sd s3, %0" : : "m"(pTask->thread.s3));   \
-        asm("sd s4, %0" : : "m"(pTask->thread.s4));   \
-        asm("sd s5, %0" : : "m"(pTask->thread.s5));   \
-        asm("sd s6, %0" : : "m"(pTask->thread.s6));   \
-        asm("sd s7, %0" : : "m"(pTask->thread.s7));   \
-        asm("sd s8, %0" : : "m"(pTask->thread.s8));   \
-        asm("sd s9, %0" : : "m"(pTask->thread.s9));   \
-        asm("sd s10, %0" : : "m"(pTask->thread.s10)); \
-        asm("sd s11, %0" : : "m"(pTask->thread.s11)); \
-    }
-
-#define CONTEXT_LOAD(pTask)                           \
-    {                                                 \
-        asm("ld ra, %0" : : "m"(pTask->thread.ra));   \
-        asm("ld sp, %0" : : "m"(pTask->thread.sp));   \
-        asm("ld s0, %0" : : "m"(pTask->thread.s0));   \
-        asm("ld s1, %0" : : "m"(pTask->thread.s1));   \
-        asm("ld s2, %0" : : "m"(pTask->thread.s2));   \
-        asm("ld s3, %0" : : "m"(pTask->thread.s3));   \
-        asm("ld s4, %0" : : "m"(pTask->thread.s4));   \
-        asm("ld s5, %0" : : "m"(pTask->thread.s5));   \
-        asm("ld s6, %0" : : "m"(pTask->thread.s6));   \
-        asm("ld s7, %0" : : "m"(pTask->thread.s7));   \
-        asm("ld s8, %0" : : "m"(pTask->thread.s8));   \
-        asm("ld s9, %0" : : "m"(pTask->thread.s9));   \
-        asm("ld s10, %0" : : "m"(pTask->thread.s10)); \
-        asm("ld s11, %0" : : "m"(pTask->thread.s11)); \
-    }
 #endif
 
 #endif

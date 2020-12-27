@@ -82,12 +82,12 @@ uint64 *page_walk(uint64 *pgtbl, uint64 va) {
  * @param va Mapping from
  * @param pa Mapping to
  * @param sz Mapping size, ceil to PAGE_SIZE
- * @param perm Mapping permission: XWR
+ * @param prot Mapping protetion & permission(XWR)
  */
-void create_mapping(uint64 *pgtbl, uint64 va, uint64 pa, uint64 sz, int perm) {
+void create_mapping(uint64 *pgtbl, uint64 va, uint64 pa, uint64 sz, int prot) {
     for (uint64 addr_last_byte = va + sz - 1; va <= addr_last_byte;
          va += PAGE_SIZE, pa += PAGE_SIZE) {
-        LoadPTE(page_walk(pgtbl, va), PAtoPPN(pa), perm, 1);
+        LoadPTE(page_walk(pgtbl, va), PAtoPPN(pa), prot, 1);
     }
 }
 
@@ -124,7 +124,8 @@ void paging_init(void) {
         PERM_R | PERM_W);  // Other Sections
 
     // Map User
-    create_mapping(rtpg_addr, 0, USER_PHY_ENTRY, USER_MAPPING_SIZE, PERM_R | PERM_W | PERM_X);
+    create_mapping(
+        rtpg_addr, 0, USER_PHY_ENTRY, USER_MAPPING_SIZE, PROT_U | PERM_R | PERM_W | PERM_X);
     create_mapping(rtpg_addr, USER_STACK_TOP - USER_MAPPING_SIZE,
-        USER_PHY_ENTRY + USER_MAPPING_SIZE, USER_MAPPING_SIZE, PERM_R | PERM_W);
+        USER_PHY_ENTRY + USER_MAPPING_SIZE, USER_MAPPING_SIZE, PROT_U | PERM_R | PERM_W);
 }

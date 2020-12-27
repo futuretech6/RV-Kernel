@@ -1,6 +1,6 @@
 # Makefile_lab5
 # ln -s ~/lab5/.gdbinit ~/.gdbinit
-# sed -i '$aalias md=make\\ \\&\\&\\ make\\ debug' ~/.bashrc
+# sed -i '$aalias md=make\\ debug' ~/.bashrc
 # sed -i '$aalias gdb=/opt/riscv/bin/riscv64-unknown-linux-gnu-gdb' ~/.bashrc
 # sed -i '$aalias gv=/opt/riscv/bin/riscv64-unknown-linux-gnu-gdb\\ vmlinux' ~/.bashrc
 # sed -i '$aalias readelf=/opt/riscv/bin/riscv64-unknown-linux-gnu-readelf' ~/.bashrc
@@ -23,9 +23,9 @@ ISA ?= rv64imafd
 ABI ?= lp64
 
 INCLUDE = -I ${TOP}/include/ -I ${TOP}/arch/riscv/include/
-CF = -O0 -march=$(ISA) -mabi=$(ABI) -mcmodel=medany -ffunction-sections -fdata-sections -nostartfiles -nostdlib -nostdinc -static -lgcc -Wl,--nmagic -Wl,--gc-sections -g
-# CFLAG = ${CF} ${INCLUDE} -D SJF
-CFLAG = ${CF} ${INCLUDE} -D PRIORITY
+CF = -march=$(ISA) -mabi=$(ABI) -mcmodel=medany -ffunction-sections -fdata-sections -nostartfiles -nostdlib -nostdinc -static -lgcc -Wl,--nmagic -Wl,--gc-sections -g
+CFLAG = ${CF} ${INCLUDE} -D SJF
+# CFLAG = ${CF} ${INCLUDE} -D PRIORITY
 
 .PHONY: all build dasm run debug clean
 
@@ -50,13 +50,13 @@ ${TOP}/misc/hello_section.txt: ${TOP}/user/hello.elf
 
 run: build dasm
 	qemu-system-riscv64 -nographic -machine virt -kernel vmlinux -initrd ./user/hello.bin
-	@echo "\e[32m==== Run Successfully ====\e[0m"
+	@echo "\e[32m====  Run Successfully  ====\e[0m"
 
 
 debug: build dasm
-	@echo "\e[32m==== Start Debugging ====\e[0m"
+	@echo "\e[32m====  Start Debugging  ====\e[0m"
 	qemu-system-riscv64 -nographic -machine virt -kernel vmlinux -initrd ./user/hello.bin -S -s
-	@echo "\e[32m==== End Debugging ====\e[0m"
+	@echo "\e[32m====   End Debugging   ====\e[0m"
 
 
 clean:

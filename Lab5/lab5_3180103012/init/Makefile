@@ -1,6 +1,6 @@
 # Makefile_init
-DEP = ./Makefile $(shell ls ${TOP}/include/*.h) $(shell ls ${TOP}/arch/riscv/include/*.h)
-SRC = $(shell ls *.c)
+DEP = ./Makefile $(wildcard ${TOP}/include/*.h) $(wildcard ${TOP}/arch/riscv/include/*.h)
+SRC = $(wildcard *.c)
 
 .PHONY: all clean
 

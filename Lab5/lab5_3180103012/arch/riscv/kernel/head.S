@@ -97,6 +97,10 @@ S_Mode:
     la sp, init_stack_top
     add sp, sp, t2  # convert to virtual
 
+    # # enable sstatus.sum
+    # li t0, 0x40000    # sstatus[18]=SUM
+    # csrs sstatus, t0
+
     # jump to start_kernel in virtual space
     la t1, start_kernel
     add t1, t1, t2  # convert to virtual

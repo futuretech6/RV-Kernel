@@ -1,6 +1,6 @@
 # Makefile_kernel
-DEP = ./Makefile ${TOP}/Makefile $(shell ls ${TOP}/include/*.h) $(shell ls ${TOP}/arch/riscv/include/*.h)
-SRC = $(shell ls *.c *.S)
+DEP = ./Makefile ${TOP}/Makefile $(wildcard ${TOP}/include/*.h) $(wildcard ${TOP}/arch/riscv/include/*.h)
+SRC = $(wildcard *.c *.S)
 
 .PHONY: all clean c asm
 
@@ -10,7 +10,7 @@ c: $(SRC:%.c=%.o) ${DEP}
 %.o: %.S ${DEP} ${SRC}
 	@${CC} $(CFLAG) -c $< -o $@
 
-asm: $(SRC:%.S=%.o) ${DEP}
+asm: $(patsubst %S, %o, ${SRC}) ${DEP}
 %.o: %.c ${DEP}
 	@${CC} ${CFLAG} -c $< -o $@
 

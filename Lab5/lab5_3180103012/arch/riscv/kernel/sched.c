@@ -29,8 +29,9 @@ void task_init(void) {
 
         task[i]->thread.sp = TASK_BASE + TASK_SIZE * (i + 1) - 0x1;
         asm("la t0, thread_init");
-        asm("sd t0, %0" ::"m"(task[i]->thread.ra));
-        task[i]->sscratch = (size_t)&task[i]->thread.sp;
+        asm("sd t0, %0" : : "m"(task[i]->thread.ra));
+        task[i]->sscratch = (size_t)task[i]->thread.sp;
+        // asm("sd sp, %0" ::"m"(task[i]->sscratch));
 
         if (i != 0)
 #if PREEMPT_ENABLE == 0  // SJF
@@ -41,6 +42,8 @@ void task_init(void) {
                 task[i]->pid, task[i]->counter, task[i]->priority);
 #endif
     }
+    asm("ld t0, %0" : : "m"(task[0]->sscratch));
+    asm("csrw sscratch, t0");
 }
 
 /**
@@ -73,15 +76,29 @@ void do_timer(void) {
  *
  * @param next
  */
+// void switch_to(struct task_struct *next) {
+//     if (current == next)
+//         return;
+
+//     asm("addi sp, sp, 32");  // Restore the stack of switch_to
+//     CONTEXT_SAVE(current);   // Do context save
+//     current = next;          // `next` in $s0(-O0), will be overwrite soon
+//     asm("ld t0, %0" : : "m"(current->sscratch));
+//     asm("csrw sscratch, t0");
+//     CONTEXT_LOAD(current);  // This `current` is the argv `next`
+
+//     asm("ret");
+// }
 void switch_to(struct task_struct *next) {
     if (current == next)
         return;
 
-    asm("addi sp, sp, 32");  // Restore the stack of switch_to
-    CONTEXT_SAVE(current);   // Do context save
-    current = next;          // `next` in $s0(-O0), will be overwrite soon
-    CONTEXT_LOAD(current);   // This `current` is the argv `next`
-    asm("ret");
+    struct task_struct *prev = current;
+    current                  = next;
+
+    __switch_to(&prev->thread, &next->thread);
+    asm("ld t0, %0" : : "m"(current->sscratch));
+    asm("csrw sscratch, t0");
 }
 
 /**
@@ -120,7 +137,6 @@ void schedule(void) {
             (unsigned long)task[i_min_cnt], task[i_min_cnt]->priority,
             task[i_min_cnt]->counter);
         switch_to(task[i_min_cnt]);
-        asm("mv t0, ")
     }
 
 #else  // PRIORITY
@@ -152,7 +168,5 @@ void schedule(void) {
                 task[i]->priority);
         }
     switch_to(task[i_min_cnt]);
-    // asm("mv t0, %0" ::"r"(&(current->sscratch)));
-    asm("csrw sscratch, sp");
 #endif
 }
