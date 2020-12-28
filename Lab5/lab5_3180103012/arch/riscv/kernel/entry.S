@@ -89,7 +89,8 @@ trap_m:
             # set mtimecmp = mtime + time_sep, hardware will clear mip.mtip
             la s0, mtime_addr
             ld s0, 0(s0)    # s0 = mtime
-            la s1, time_sep
+            # la s1, time_sep
+            li s1, 0x10000000
             add s1, s0, s1  # s1 = mtime+sep
             la s0, mtimecmp_addr
             sd s1, 0(s0)

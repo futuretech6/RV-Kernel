@@ -7,7 +7,8 @@ int os_test() {
     puts("task init...\n");
 
     task_init();
-    dead_loop();
+    for (;;)
+        ;
 
     return 0;
 }

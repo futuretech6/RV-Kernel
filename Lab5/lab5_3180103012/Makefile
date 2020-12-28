@@ -27,10 +27,13 @@ CF = -march=$(ISA) -mabi=$(ABI) -mcmodel=medany -ffunction-sections -fdata-secti
 CFLAG = ${CF} ${INCLUDE} -D SJF
 # CFLAG = ${CF} ${INCLUDE} -D PRIORITY
 
-.PHONY: all build dasm run debug clean
+.PHONY: all user build dasm run debug clean
 
 
 all: build dasm
+user:
+	@make -C ${TOP}/user/
+
 build:
 	@make -C ${TOP}/lib/
 	@make -C ${TOP}/init/
@@ -38,12 +41,14 @@ build:
 	@make -C ${TOP}/arch/riscv/
 	@echo "\e[35m==== Build Successfully ====\e[0m"
 
-dasm: ${TOP}/misc/dasm.S ${TOP}/misc/vmlinux_section.txt ${TOP}/misc/hello_section.txt
+dasm: ${TOP}/misc/dasm.S ${TOP}/misc/vmlinux_section.txt ${TOP}/misc/hello_dasm.S ${TOP}/misc/hello_section.txt
 	@echo "\e[35m==== DAsm Successfully ====\e[0m"
 ${TOP}/misc/dasm.S: ${TOP}/vmlinux
 	${OBJDUMP} -S ${TOP}/vmlinux > ${TOP}/misc/dasm.S
 ${TOP}/misc/vmlinux_section.txt: ${TOP}/vmlinux
 	${READELF} -S ${TOP}/vmlinux > ${TOP}/misc/vmlinux_section.txt
+${TOP}/misc/hello_dasm.S: ${TOP}/user/hello.elf
+	${OBJDUMP} -S ${TOP}/user/hello.elf > ${TOP}/misc/hello_dasm.S
 ${TOP}/misc/hello_section.txt: ${TOP}/user/hello.elf
 	${READELF} -S ${TOP}/user/hello.elf > ${TOP}/misc/hello_section.txt
 

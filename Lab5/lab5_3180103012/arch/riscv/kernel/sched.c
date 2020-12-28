@@ -27,7 +27,7 @@ void task_init(void) {
         task[i]->blocked  = 0;
         task[i]->pid      = i;
 
-        task[i]->thread.sp = TASK_BASE + TASK_SIZE * (i + 1) - 0x1;
+        task[i]->thread.sp = TASK_BASE + TASK_SIZE * (i + 1);
         asm("la t0, thread_init");
         asm("sd t0, %0" : : "m"(task[i]->thread.ra));
         task[i]->sscratch = (size_t)task[i]->thread.sp;
@@ -50,13 +50,9 @@ void task_init(void) {
  * @brief called by timer int
  */
 void do_timer(void) {
-    // puts("\n====\n");
-    // sys_write(1, "nihao\n", 4);
-    // putd(sys_getpid());
-    // puts("\n====\n");
 #if PREEMPT_ENABLE == 0  // SJF
     // Print thread info for SJF
-    putf("[PID = %d] Context Calculation: counter = %d\n", current->pid, current->counter);
+    // putf("[PID = %d] Context Calculation: counter = %d\n", current->pid, current->counter);
 
     // Decrease counter and schedule
     current->counter--;
@@ -76,38 +72,30 @@ void do_timer(void) {
  *
  * @param next
  */
-// void switch_to(struct task_struct *next) {
-//     if (current == next)
-//         return;
-
-//     asm("addi sp, sp, 32");  // Restore the stack of switch_to
-//     CONTEXT_SAVE(current);   // Do context save
-//     current = next;          // `next` in $s0(-O0), will be overwrite soon
-//     asm("ld t0, %0" : : "m"(current->sscratch));
-//     asm("csrw sscratch, t0");
-//     CONTEXT_LOAD(current);  // This `current` is the argv `next`
-
-//     asm("ret");
-// }
 void switch_to(struct task_struct *next) {
     if (current == next)
         return;
 
-    struct task_struct *prev = current;
-    current                  = next;
-
-    __switch_to(&prev->thread, &next->thread);
+    asm("addi sp, sp, 32");  // Restore the stack of switch_to
+    CONTEXT_SAVE(current);   // Do context save
+    current = next;          // `next` in $s0(-O0), will be overwrite soon
     asm("ld t0, %0" : : "m"(current->sscratch));
     asm("csrw sscratch, t0");
-}
+    CONTEXT_LOAD(current);  // This `current` is the argv `next`
 
-/**
- * @brief dead loop
- */
-void dead_loop(void) {
-    for (;;)
-        ;
+    asm("ret");
 }
+// void switch_to(struct task_struct *next) {
+//     if (current == next)
+//         return;
+
+//     struct task_struct *prev = current;
+//     current                  = next;
+
+//     __switch_to(&prev->thread, &next->thread);
+//     asm("ld t0, %0" : : "m"(current->sscratch));
+//     asm("csrw sscratch, t0");
+// }
 
 /**
  * @brief schedule implementation
@@ -128,7 +116,7 @@ void schedule(void) {
         for (int i = 1; i <= LAB_TEST_NUM; i++)
             if (task[i]->state == TASK_RUNNING) {
                 task[i]->counter = rand();
-                putf("[PID = %d] Reset counter = %d\n", task[i]->pid, task[i]->counter);
+                // putf("[PID = %d] Reset counter = %d\n", task[i]->pid, task[i]->counter);
             }
         schedule();
     } else {
@@ -161,11 +149,11 @@ void schedule(void) {
             task[i]->priority = rand();
 
     // Print all threads' info for PRIORITY
-    puts("tasks' priority changed\n");
+    // puts("tasks' priority changed\n");
     for (int i = 1; i <= LAB_TEST_NUM; i++)
         if (task[i]->state == TASK_RUNNING) {
-            putf("[PID = %d] counter = %d priority = %d\n", task[i]->pid, task[i]->counter,
-                task[i]->priority);
+            // putf("[PID = %d] counter = %d priority = %d\n", task[i]->pid, task[i]->counter,
+                // task[i]->priority);
         }
     switch_to(task[i_min_cnt]);
 #endif
