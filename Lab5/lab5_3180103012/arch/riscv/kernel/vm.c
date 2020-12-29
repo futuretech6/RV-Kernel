@@ -122,11 +122,11 @@ void create_mapping(uint64 *pgtbl, uint64 va, uint64 pa, uint64 sz, int prot) {
 }
 
 /**
- * @brief 将内核起始的0x80000000的16MB映射到0xffffffe000000000，同时也进行等值映射。
- * 将必要的硬件地址（如UART）进行等值映射，无偏移。
+ * @brief Map kernel space to equal addr and higer addr, and map hardware address
  */
 void kernel_paging_init(void) {
     uint64 *rtpg_addr = (uint64 *)kalloc(PAGE_SIZE);
+
     // Map UART
     create_mapping(
         rtpg_addr, (uint64)UART_VIR_ADDR, (uint64)UART_PHY_ADDR, PAGE_SIZE, PERM_R | PERM_W);
@@ -154,17 +154,29 @@ void kernel_paging_init(void) {
         PERM_R | PERM_W);  // Other Sections
 }
 
+/**
+ * @brief Map user space memory, while copying the kernel space
+ *
+ * @return uint64* Address of the root page
+ */
 uint64 *user_paging_init(void) {
-    uint64 *rtpg_addr = (uint64 *)kalloc(PAGE_SIZE), *kernel_rtpg_addr;
+    static uint64 *kernel_rtpg_addr = NULL;
+    uint64 *rtpg_addr               = (uint64 *)kalloc(PAGE_SIZE);
+
+    // Init kernel_rtpg_addr
+    if (!kernel_rtpg_addr) {
+        asm("la t0, kernel_rt_pg_addr");
+        asm("sd t0, %0" : : "m"(kernel_rtpg_addr));
+    }
 
     // Copy Kernel Page
-    asm("la t0, kernel_rt_pg_addr");
-    asm("sd t0, %0" : : "m"(kernel_rtpg_addr));
     memcpy_byte(rtpg_addr, kernel_rtpg_addr, PAGE_SIZE);
 
-    // Map user space
+    // Map user program
     create_mapping(
         rtpg_addr, 0, USER_PHY_ENTRY, USER_MAPPING_SIZE, PROT_U | PERM_R | PERM_W | PERM_X);
+
+    // Map user stack
     create_mapping(rtpg_addr, USER_STACK_TOP - USER_MAPPING_SIZE,
         USER_PHY_ENTRY + USER_MAPPING_SIZE, USER_MAPPING_SIZE, PROT_U | PERM_R | PERM_W);
 

@@ -105,17 +105,6 @@ void switch_to(struct task_struct *next) {
 
     asm("ret");
 }
-// void switch_to(struct task_struct *next) {
-//     if (current == next)
-//         return;
-
-//     struct task_struct *prev = current;
-//     current                  = next;
-
-//     __switch_to(&prev->thread, &next->thread);
-//     asm("ld t0, %0" : : "m"(current->sscratch));
-//     asm("csrw sscratch, t0");
-// }
 
 /**
  * @brief schedule implementation

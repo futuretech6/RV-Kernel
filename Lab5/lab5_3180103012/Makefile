@@ -24,16 +24,19 @@ ABI ?= lp64
 
 INCLUDE = -I ${TOP}/include/ -I ${TOP}/arch/riscv/include/
 CF = -march=$(ISA) -mabi=$(ABI) -mcmodel=medany -ffunction-sections -fdata-sections -nostartfiles -nostdlib -nostdinc -static -lgcc -Wl,--nmagic -Wl,--gc-sections -g
-CFLAG = ${CF} ${INCLUDE} -D SJF
-# CFLAG = ${CF} ${INCLUDE} -D PRIORITY
+# CFLAG = ${CF} ${INCLUDE} -D SJF
+CFLAG = ${CF} ${INCLUDE} -D PRIORITY
 
 .PHONY: all user kernel dasm run debug clean
 
 
 all: user kernel dasm
+
+
 user:
 	@make -C ${TOP}/user/
 	@echo "\e[35mBuild User Program Successfully\e[0m"
+
 
 kernel:
 	@make -C ${TOP}/lib/
@@ -42,8 +45,9 @@ kernel:
 	@make -C ${TOP}/arch/riscv/
 	@echo "\e[35mBuild Kernel Successfully\e[0m"
 
+
 dasm: ${TOP}/misc/dasm.S ${TOP}/misc/vmlinux_section.txt ${TOP}/misc/hello_dasm.S ${TOP}/misc/hello_section.txt
-	@echo "\e[35mDe-assemble Successfully\e[0m"
+	@echo "\e[35mDisassemble Successfully\e[0m"
 ${TOP}/misc/dasm.S: ${TOP}/vmlinux
 	${OBJDUMP} -S ${TOP}/vmlinux > ${TOP}/misc/dasm.S
 ${TOP}/misc/vmlinux_section.txt: ${TOP}/vmlinux
@@ -60,7 +64,7 @@ run: user kernel dasm
 
 
 debug: user kernel dasm
-	@echo "\e[32m====  Start Debugging  ====\e[0m"
+	@echo "\e[32mStart Debugging\e[0m"
 	qemu-system-riscv64 -nographic -machine virt -kernel vmlinux -initrd ./user/hello.bin -S -s
 	@echo "\e[32mEnd Debugging\e[0m"
 

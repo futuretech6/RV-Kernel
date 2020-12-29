@@ -45,7 +45,6 @@ size_t handler_sys_write(unsigned int fd, const char *buf, size_t count) {
 }
 
 long handler_sys_getpid(void) {
-    // return 22;
     return current->pid;
 }
 
