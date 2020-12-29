@@ -9,7 +9,6 @@
 #define KERNEL_VIR_BASE 0xffffffe000000000
 #define USER_PHY_ENTRY 0x84000000
 #define USER_STACK_TOP 0xffffffdf80000000
-// #define USER_STACK_TOP 0xffffffdf79999990
 
 #define USER_MAPPING_SIZE 0x1000000    // 16MB
 #define KERNEL_MAPPING_SIZE 0x1000000  // 16MB
@@ -41,25 +40,8 @@ struct pageTable {
     uint64 PTE_list[512];
 };
 
-#define Page_Floor(__addr) ((uint64)(__addr) & ~(uint64)(PAGE_SIZE - 1))
-
-#define VAtoVPN2(__va) (((uint64)(__va) >> 30) & (PAGE_ENTRY_NUM - 1))
-#define VAtoVPN1(__va) (((uint64)(__va) >> 21) & (PAGE_ENTRY_NUM - 1))
-#define VAtoVPN0(__va) (((uint64)(__va) >> 12) & (PAGE_ENTRY_NUM - 1))
-
-#define PAtoPPN(__pa) (((uint64)(__pa) >> 12) & 0xfffffffffff)  // PPN need no division
-
-// PROT = {RSW, D, A, G, U, X, W, R, V} = {6'b0, PERM_X|W|R, V}
-#define LoadPTE(__pte_addr, __ppn, __prot, __v)                                     \
-    {                                                                               \
-        *__pte_addr = ((uint64)(*(__pte_addr)) & 0xffc0000000000000) |              \
-                      ((uint64)(__ppn) << 10) | ((uint64)(__prot) | (uint64)(__v)); \
-    }
-
-#define PTEtoPPN(__pte) (((uint64)(__pte) >> 10) & 0xfffffffffff)
-#define PTEtoV(__pte) ((_Bool)((uint64)(__pte)&0x1))
-
 void create_mapping(uint64 *pgtbl, uint64 va, uint64 pa, uint64 sz, int prot);
-void paging_init(void);
+void kernel_paging_init(void);
+uint64 *user_paging_init(void);
 
 #endif

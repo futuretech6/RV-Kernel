@@ -6,7 +6,7 @@ thread_init:
     li sp, 0xffffffdf80000000
     li t0, 0x100
     csrc sstatus, t0  # sstatus.SPP=0
-    li t0, 0x4
+    li t0, 0x0
     csrw sepc, t0
     sret
 
@@ -89,8 +89,8 @@ trap_m:
             # set mtimecmp = mtime + time_sep, hardware will clear mip.mtip
             la s0, mtime_addr
             ld s0, 0(s0)    # s0 = mtime
-            # la s1, time_sep
-            li s1, 0x10000000
+            la s1, time_sep
+            # li s1, 0x4000000
             add s1, s0, s1  # s1 = mtime+sep
             la s0, mtimecmp_addr
             sd s1, 0(s0)

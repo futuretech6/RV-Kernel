@@ -27,22 +27,23 @@ CF = -march=$(ISA) -mabi=$(ABI) -mcmodel=medany -ffunction-sections -fdata-secti
 CFLAG = ${CF} ${INCLUDE} -D SJF
 # CFLAG = ${CF} ${INCLUDE} -D PRIORITY
 
-.PHONY: all user build dasm run debug clean
+.PHONY: all user kernel dasm run debug clean
 
 
-all: build dasm
+all: user kernel dasm
 user:
 	@make -C ${TOP}/user/
+	@echo "\e[35mBuild User Program Successfully\e[0m"
 
-build:
+kernel:
 	@make -C ${TOP}/lib/
 	@make -C ${TOP}/init/
 	@make -C ${TOP}/arch/riscv/kernel/
 	@make -C ${TOP}/arch/riscv/
-	@echo "\e[35m==== Build Successfully ====\e[0m"
+	@echo "\e[35mBuild Kernel Successfully\e[0m"
 
 dasm: ${TOP}/misc/dasm.S ${TOP}/misc/vmlinux_section.txt ${TOP}/misc/hello_dasm.S ${TOP}/misc/hello_section.txt
-	@echo "\e[35m==== DAsm Successfully ====\e[0m"
+	@echo "\e[35mDe-assemble Successfully\e[0m"
 ${TOP}/misc/dasm.S: ${TOP}/vmlinux
 	${OBJDUMP} -S ${TOP}/vmlinux > ${TOP}/misc/dasm.S
 ${TOP}/misc/vmlinux_section.txt: ${TOP}/vmlinux
@@ -53,15 +54,15 @@ ${TOP}/misc/hello_section.txt: ${TOP}/user/hello.elf
 	${READELF} -S ${TOP}/user/hello.elf > ${TOP}/misc/hello_section.txt
 
 
-run: build dasm
+run: user kernel dasm
 	qemu-system-riscv64 -nographic -machine virt -kernel vmlinux -initrd ./user/hello.bin
-	@echo "\e[32m====  Run Successfully  ====\e[0m"
+	@echo "\e[32mRun Successfully\e[0m"
 
 
-debug: build dasm
+debug: user kernel dasm
 	@echo "\e[32m====  Start Debugging  ====\e[0m"
 	qemu-system-riscv64 -nographic -machine virt -kernel vmlinux -initrd ./user/hello.bin -S -s
-	@echo "\e[32m====   End Debugging   ====\e[0m"
+	@echo "\e[32mEnd Debugging\e[0m"
 
 
 clean:
@@ -70,4 +71,5 @@ clean:
 	@make -C ${TOP}/arch/riscv/kernel/ clean
 	@make -C ${TOP}/init/ clean
 	@make -C ${TOP}/lib/ clean
-	@echo "\e[36m==== Clean Successfully ====\e[0m"
+	@make -C ${TOP}/user/ clean
+	@echo "\e[36mClean Successfully\e[0m"

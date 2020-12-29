@@ -10,6 +10,7 @@
 #include "put.h"
 #include "rand.h"
 #include "syscall.h"
+#include "vm.h"
 
 struct task_struct *current;
 struct task_struct *task[NR_TASKS];
@@ -30,8 +31,11 @@ void task_init(void) {
         task[i]->thread.sp = TASK_BASE + TASK_SIZE * (i + 1);
         asm("la t0, thread_init");
         asm("sd t0, %0" : : "m"(task[i]->thread.ra));
+
         task[i]->sscratch = (size_t)task[i]->thread.sp;
-        // asm("sd sp, %0" ::"m"(task[i]->sscratch));
+
+        task[i]->mm.rtpg_addr    = user_paging_init();
+        task[i]->mm.mapping_size = USER_MAPPING_SIZE;
 
         if (i != 0)
 #if PREEMPT_ENABLE == 0  // SJF
@@ -78,9 +82,25 @@ void switch_to(struct task_struct *next) {
 
     asm("addi sp, sp, 32");  // Restore the stack of switch_to
     CONTEXT_SAVE(current);   // Do context save
-    current = next;          // `next` in $s0(-O0), will be overwrite soon
+
+    asm("csrr t0, sscratch");
+    asm("sd t0, %0" : : "m"(current->sscratch));
+
+    current = next;  // `next` in $s0(-O0), will be overwrite soon
+
     asm("ld t0, %0" : : "m"(current->sscratch));
     asm("csrw sscratch, t0");
+
+    asm("ori t0, zero, 8");
+    asm("sll t0, t0, 16");
+    asm("ori t0, t0, 0");
+    asm("sll t0, t0, 44");
+    asm("ld t1, %0" : : "m"(current->mm.rtpg_addr));
+    asm("srl t1, t1, 12");
+    asm("or t0, t0, t1");
+    asm("csrw satp, t0");
+    asm("sfence.vma");
+
     CONTEXT_LOAD(current);  // This `current` is the argv `next`
 
     asm("ret");
@@ -153,7 +173,7 @@ void schedule(void) {
     for (int i = 1; i <= LAB_TEST_NUM; i++)
         if (task[i]->state == TASK_RUNNING) {
             // putf("[PID = %d] counter = %d priority = %d\n", task[i]->pid, task[i]->counter,
-                // task[i]->priority);
+            // task[i]->priority);
         }
     switch_to(task[i_min_cnt]);
 #endif

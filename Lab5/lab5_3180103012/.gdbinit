@@ -7,3 +7,5 @@ b trap_m
 b trap_s
 b thread_init
 b start_kernel
+b *0xffffffe000001924
+b *0xffffffe000001b8c

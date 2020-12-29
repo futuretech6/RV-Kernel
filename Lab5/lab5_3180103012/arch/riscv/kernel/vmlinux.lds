@@ -56,12 +56,12 @@ SECTIONS {
     virtual_base  = 0xffffffe000000000;
     phy2vir_diff  = 0xffffffdf80000000;
 
-    rt_pg_addr = _end;
+    kernel_rt_pg_addr = _end;
 
     mtime_addr    = 0x200bff8;
     mtimecmp_addr = 0x2004000;
-    time_sep_init = 1000000;
-    time_sep      = 100000;
+    time_sep_init = 10000000;
+    time_sep      = 0x3000000;
 
     mcause_i_MTimer  = 7;
 

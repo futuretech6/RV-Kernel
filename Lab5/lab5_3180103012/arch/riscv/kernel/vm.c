@@ -10,6 +10,24 @@
 #include "vm.h"
 #include "put.h"
 
+#define Page_Floor(__addr) ((uint64)(__addr) & ~(uint64)(PAGE_SIZE - 1))
+
+#define VAtoVPN2(__va) (((uint64)(__va) >> 30) & (PAGE_ENTRY_NUM - 1))
+#define VAtoVPN1(__va) (((uint64)(__va) >> 21) & (PAGE_ENTRY_NUM - 1))
+#define VAtoVPN0(__va) (((uint64)(__va) >> 12) & (PAGE_ENTRY_NUM - 1))
+
+#define PAtoPPN(__pa) (((uint64)(__pa) >> 12) & 0xfffffffffff)  // PPN need no division
+
+// PROT = {RSW, D, A, G, U, X, W, R, V} = {6'b0, PERM_X|W|R, V}
+#define LoadPTE(__pte_addr, __ppn, __prot, __v)                                     \
+    {                                                                               \
+        *__pte_addr = ((uint64)(*(__pte_addr)) & 0xffc0000000000000) |              \
+                      ((uint64)(__ppn) << 10) | ((uint64)(__prot) | (uint64)(__v)); \
+    }
+
+#define PTEtoPPN(__pte) (((uint64)(__pte) >> 10) & 0xfffffffffff)
+#define PTEtoV(__pte) ((_Bool)((uint64)(__pte)&0x1))
+
 /**
  * @brief Alloc physical memory space for kernel
  *
@@ -21,7 +39,7 @@ void *kalloc(size_t size) {
     static struct free_list_node *free_list = NULL;
     if (free_list == NULL) {  // Init
         free_list = &first_node;
-        asm("la t0, rt_pg_addr");
+        asm("la t0, kernel_rt_pg_addr");
         asm("sd t0, %0" ::"m"(free_list->base));
         free_list->limit = FREE_SPACE_SIZE;
         free_list->next  = NULL;
@@ -42,8 +60,20 @@ void *kalloc(size_t size) {
  * @param n Number of bytes replaced
  */
 void memset_byte(void *s, uint8 c, size_t n) {
-    for (int i = 0; i < n; i++)
+    for (size_t i = 0; i < n; i++)
         *((uint8 *)s + i) = c;
+}
+
+/**
+ * @brief
+ *
+ * @param dest
+ * @param src
+ * @param n
+ */
+void memcpy_byte(void *dest, const void *src, size_t n) {
+    for (size_t i = 0; i < n; i++)
+        *((uint8 *)dest + i) = *((uint8 *)src + i);
 }
 
 /**
@@ -95,7 +125,7 @@ void create_mapping(uint64 *pgtbl, uint64 va, uint64 pa, uint64 sz, int prot) {
  * @brief 将内核起始的0x80000000的16MB映射到0xffffffe000000000，同时也进行等值映射。
  * 将必要的硬件地址（如UART）进行等值映射，无偏移。
  */
-void paging_init(void) {
+void kernel_paging_init(void) {
     uint64 *rtpg_addr = (uint64 *)kalloc(PAGE_SIZE);
     // Map UART
     create_mapping(
@@ -122,10 +152,21 @@ void paging_init(void) {
         KERNEL_PHY_BASE + KERNEL_TEXT_SIZE + KERNEL_RODATA_SIZE,
         KERNEL_MAPPING_SIZE - (KERNEL_TEXT_SIZE + KERNEL_RODATA_SIZE),
         PERM_R | PERM_W);  // Other Sections
+}
 
-    // Map User
+uint64 *user_paging_init(void) {
+    uint64 *rtpg_addr = (uint64 *)kalloc(PAGE_SIZE), *kernel_rtpg_addr;
+
+    // Copy Kernel Page
+    asm("la t0, kernel_rt_pg_addr");
+    asm("sd t0, %0" : : "m"(kernel_rtpg_addr));
+    memcpy_byte(rtpg_addr, kernel_rtpg_addr, PAGE_SIZE);
+
+    // Map user space
     create_mapping(
         rtpg_addr, 0, USER_PHY_ENTRY, USER_MAPPING_SIZE, PROT_U | PERM_R | PERM_W | PERM_X);
     create_mapping(rtpg_addr, USER_STACK_TOP - USER_MAPPING_SIZE,
         USER_PHY_ENTRY + USER_MAPPING_SIZE, USER_MAPPING_SIZE, PROT_U | PERM_R | PERM_W);
+
+    return rtpg_addr;
 }
