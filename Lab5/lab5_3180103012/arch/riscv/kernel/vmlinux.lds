@@ -60,8 +60,8 @@ SECTIONS {
 
     mtime_addr    = 0x200bff8;
     mtimecmp_addr = 0x2004000;
-    time_sep_init = 10000000;
-    time_sep      = 1000000;
+    time_sep_init = 5000000;
+    time_sep      = 5000000;
 
     mcause_i_MTimer  = 7;
 

@@ -160,8 +160,10 @@ void kernel_paging_init(void) {
  * @return uint64* Address of the root page
  */
 uint64 *user_paging_init(void) {
-    static uint64 *kernel_rtpg_addr = NULL;
-    uint64 *rtpg_addr               = (uint64 *)kalloc(PAGE_SIZE);
+    static uint64 *kernel_rtpg_addr       = NULL;
+    static uint64 user_stack_top_physical = USER_PHY_ENTRY;
+
+    uint64 *rtpg_addr = (uint64 *)kalloc(PAGE_SIZE);
 
     // Init kernel_rtpg_addr
     if (!kernel_rtpg_addr) {
@@ -178,7 +180,8 @@ uint64 *user_paging_init(void) {
 
     // Map user stack
     create_mapping(rtpg_addr, USER_STACK_TOP - USER_MAPPING_SIZE,
-        USER_PHY_ENTRY + USER_MAPPING_SIZE, USER_MAPPING_SIZE, PROT_U | PERM_R | PERM_W);
+        (user_stack_top_physical += USER_MAPPING_SIZE), USER_MAPPING_SIZE,
+        PROT_U | PERM_R | PERM_W);
 
     return rtpg_addr;
 }

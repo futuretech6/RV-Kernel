@@ -34,8 +34,7 @@ void task_init(void) {
 
         task[i]->sscratch = (size_t)task[i]->thread.sp;
 
-        task[i]->mm.rtpg_addr    = user_paging_init();
-        task[i]->mm.mapping_size = USER_MAPPING_SIZE;
+        task[i]->mm.rtpg_addr = user_paging_init();
 
         if (i != 0)
 #if PREEMPT_ENABLE == 0  // SJF

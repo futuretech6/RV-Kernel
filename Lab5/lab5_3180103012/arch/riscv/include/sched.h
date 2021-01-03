@@ -66,7 +66,6 @@ struct thread_struct {
 
 struct mm_struct {
     uint64 *rtpg_addr;
-    size_t mapping_size;
 };
 
 /* 进程数据结构 */
