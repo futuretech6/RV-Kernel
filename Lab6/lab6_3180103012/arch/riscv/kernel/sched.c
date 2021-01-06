@@ -12,15 +12,6 @@
 #include "syscall.h"
 #include "vm.h"
 
-#define write_csr(reg, val) ({ asm volatile("csrw " #reg ", %0" ::"rK"(val)); })
-#define read_csr(__reg)                   \
-    ({                                    \
-        uint64 __tmp;                     \
-        asm volatile("csrr t0, " #__reg); \
-        asm("sd t0, %0" : : "m"(__tmp));  \
-        __tmp;                            \
-    })
-
 struct task_struct *current;
 struct task_struct *task[NR_TASKS];
 
@@ -56,7 +47,6 @@ void task_init(void) {
     }
     asm("ld t0, %0" : : "m"(task[0]->sscratch));
     asm("csrw sscratch, t0");
-    // write_csr(sscratch, task[0]->sscratch);
 }
 
 /**
@@ -94,13 +84,11 @@ void switch_to(struct task_struct *next) {
 
     asm("csrr t0, sscratch");
     asm("sd t0, %0" : : "m"(current->sscratch));
-    // current->sscratch = read_csr(sscratch);
 
     current = next;  // `next` in $s0(-O0), will be overwrite soon
 
     asm("ld t0, %0" : : "m"(current->sscratch));
     asm("csrw sscratch, t0");
-    // write_csr(sscratch, current->sscratch);
 
     asm("ori t0, zero, 8");
     asm("sll t0, t0, 16");
