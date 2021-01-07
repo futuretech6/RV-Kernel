@@ -6,8 +6,8 @@ SRC = $(wildcard *.c *.S)
 
 
 all: c asm
-c: $(SRC:%.c=%.o) ${DEP}
-%.o: %.S ${DEP} ${SRC}
+c: $(patsubst %c, %o, ${SRC}) ${DEP}
+%.o: %.S ${DEP}
 	@${CC} $(CFLAG) -c $< -o $@
 
 asm: $(patsubst %S, %o, ${SRC}) ${DEP}

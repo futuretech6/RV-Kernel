@@ -5,10 +5,10 @@ SRC = $(wildcard *.c)
 .PHONY: all clean
 
 
-all: $(SRC:%.c=%.o)
+all: $(patsubst %c, %o, ${SRC})
 %.o: %.c ${DEP}
 	@${CC} ${CFLAG} -c $< -o $@
 
 
 clean:
-	@rm *.o 
+	@rm -f *.o 

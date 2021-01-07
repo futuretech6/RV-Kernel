@@ -7,8 +7,8 @@
  * @ref https://gitee.com/zjuicsr/lab20fall-stu/wikis/lab4
  */
 #include "sched.h"
-#include "put.h"
 #include "rand.h"
+#include "stdio.h"
 #include "syscall.h"
 #include "vm.h"
 
@@ -38,10 +38,10 @@ void task_init(void) {
 
         if (i != 0)
 #if PREEMPT_ENABLE == 0  // SJF
-            putf("[PID = %d] Process Create Successfully! counter = %d\n", task[i]->pid,
+            printf("[PID = %d] Process Create Successfully! counter = %d\n", task[i]->pid,
                 task[i]->counter);
 #else  // PRIORITY
-            putf("[PID = %d] Process Create Successfully! counter = %d priority = %d\n",
+            printf("[PID = %d] Process Create Successfully! counter = %d priority = %d\n",
                 task[i]->pid, task[i]->counter, task[i]->priority);
 #endif
     }
@@ -55,7 +55,8 @@ void task_init(void) {
 void do_timer(void) {
 #if PREEMPT_ENABLE == 0  // SJF
     // Print thread info for SJF
-    // putf("[PID = %d] Context Calculation: counter = %d\n", current->pid, current->counter);
+    // printf("[PID = %d] Context Calculation: counter = %d\n", current->pid,
+    // current->counter);
 
     // Decrease counter and schedule
     current->counter--;
@@ -124,11 +125,11 @@ void schedule(void) {
         for (int i = 1; i <= LAB_TEST_NUM; i++)
             if (task[i]->state == TASK_RUNNING) {
                 task[i]->counter = rand();
-                // putf("[PID = %d] Reset counter = %d\n", task[i]->pid, task[i]->counter);
+                // printf("[PID = %d] Reset counter = %d\n", task[i]->pid, task[i]->counter);
             }
         schedule();
     } else {
-        putf("[!] Switch from task %d[%lx] to task %d[%lx], prio: %d, counter: %d\n",
+        printf("[!] Switch from task %d[%lx] to task %d[%lx], prio: %d, counter: %d\n",
             current->pid, (unsigned long)current, task[i_min_cnt]->pid,
             (unsigned long)task[i_min_cnt], task[i_min_cnt]->priority,
             task[i_min_cnt]->counter);
@@ -147,7 +148,7 @@ void schedule(void) {
                 i_min_cnt = i;
 
     // Must be printed here to meet demands, else the printed info is out-dated
-    putf("[!] Switch from task %d[%lx] to task %d[%lx], prio: %d, counter: %d\n",
+    printf("[!] Switch from task %d[%lx] to task %d[%lx], prio: %d, counter: %d\n",
         current->pid, (unsigned long)current, task[i_min_cnt]->pid,
         (unsigned long)task[i_min_cnt], task[i_min_cnt]->priority, task[i_min_cnt]->counter);
 
@@ -160,8 +161,8 @@ void schedule(void) {
     // puts("tasks' priority changed\n");
     for (int i = 1; i <= LAB_TEST_NUM; i++)
         if (task[i]->state == TASK_RUNNING) {
-            // putf("[PID = %d] counter = %d priority = %d\n", task[i]->pid, task[i]->counter,
-            // task[i]->priority);
+            // printf("[PID = %d] counter = %d priority = %d\n", task[i]->pid,
+            // task[i]->counter, task[i]->priority);
         }
     switch_to(task[i_min_cnt]);
 #endif

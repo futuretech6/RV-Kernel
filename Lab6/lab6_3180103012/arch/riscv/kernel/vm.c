@@ -8,7 +8,8 @@
  * @ref http://www.five-embeddev.com/riscv-isa-manual/latest/supervisor.html#sv32algorithm
  */
 #include "vm.h"
-#include "put.h"
+#include "stdio.h"
+#include "string.h"
 
 #define Page_Floor(__addr) ((uint64)(__addr) & ~(uint64)(PAGE_SIZE - 1))
 
@@ -34,7 +35,7 @@
  * @param size Memory space, in unit byte
  * @return void* Allocated space, NULL for insufficient space
  */
-void *kalloc(size_t size) {
+void *kalloc_byte(size_t size) {
     static struct free_list_node first_node;
     static struct free_list_node *free_list = NULL;
     if (free_list == NULL) {  // Init
@@ -52,29 +53,7 @@ void *kalloc(size_t size) {
             return NULL;
 }
 
-/**
- * @brief Memory set
- *
- * @param s Source address
- * @param c Char for replacement, of size 1 byte here
- * @param n Number of bytes replaced
- */
-void memset_byte(void *s, uint8 c, size_t n) {
-    for (size_t i = 0; i < n; i++)
-        *((uint8 *)s + i) = c;
-}
-
-/**
- * @brief
- *
- * @param dest
- * @param src
- * @param n
- */
-void memcpy_byte(void *dest, const void *src, size_t n) {
-    for (size_t i = 0; i < n; i++)
-        *((uint8 *)dest + i) = *((uint8 *)src + i);
-}
+void kfree_byte(void *addr) {}
 
 /**
  * @brief Page walk from level-2 PT to level-1 PT, and return addr of level-0 PTE
@@ -94,11 +73,11 @@ uint64 *page_walk(uint64 *pgtbl, uint64 va) {
         if (PTEtoV(*pte_addr)) {  // Valid PTE, next level PT has been constructed
             pgtbl = (uint64 *)(PTEtoPPN(*pte_addr) << 12);
         } else {  // Invalid PTE, need to construct next level PT
-            if ((pgtbl = (uint64 *)kalloc(PAGE_SIZE)) == NULL) {
+            if ((pgtbl = (uint64 *)kalloc_byte(PAGE_SIZE)) == NULL) {
                 puts("\n[!] Insufficient Free Space.\n");
                 return NULL;  // Insufficient free space for pg tbls
             }
-            memset_byte(pgtbl, 0, PAGE_SIZE);
+            memset(pgtbl, 0, PAGE_SIZE);
             LoadPTE(pte_addr, PAtoPPN((uint64)pgtbl), 0, 1);  // PTE <- next level pg's PPN
         }
     }
@@ -125,7 +104,7 @@ void create_mapping(uint64 *pgtbl, uint64 va, uint64 pa, uint64 sz, int prot) {
  * @brief Map kernel space to equal addr and higer addr, and map hardware address
  */
 void kernel_paging_init(void) {
-    uint64 *rtpg_addr = (uint64 *)kalloc(PAGE_SIZE);
+    uint64 *rtpg_addr = (uint64 *)kalloc_byte(PAGE_SIZE);
 
     // Map UART
     create_mapping(
@@ -163,7 +142,7 @@ uint64 *user_paging_init(void) {
     static uint64 *kernel_rtpg_addr       = NULL;
     static uint64 user_stack_top_physical = USER_PHY_ENTRY;
 
-    uint64 *rtpg_addr = (uint64 *)kalloc(PAGE_SIZE);
+    uint64 *rtpg_addr = (uint64 *)kalloc_byte(PAGE_SIZE);
 
     // Init kernel_rtpg_addr
     if (!kernel_rtpg_addr) {
@@ -172,7 +151,7 @@ uint64 *user_paging_init(void) {
     }
 
     // Copy Kernel Page
-    memcpy_byte(rtpg_addr, kernel_rtpg_addr, PAGE_SIZE);
+    memcpy(rtpg_addr, kernel_rtpg_addr, PAGE_SIZE);
 
     // Map user program
     create_mapping(

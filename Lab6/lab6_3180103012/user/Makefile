@@ -21,14 +21,14 @@ OBJ	    = $(patsubst %.S,%.o,$(ASM_SRC)) $(patsubst %.c,%.o,$(C_SRC))
 all: hello.bin
 
 %.o:%.c
-	$(CC) $(CFLAG) -c $<
+	@${CC} ${CFLAG} -c $< -o $@
 
 %.o:%.S
-	$(CC) $(CFLAG)  -c $<
+	@${CC} ${CFLAG} -c $< -o $@
 
 hello.bin: $(OBJ)
-	$(CC) $(CFLAG) -T link.ld -o hello.elf $(OBJ)
-	$(OBJCOPY) hello.elf -O binary hello.bin
+	@$(CC) $(CFLAG) -T link.ld -o hello.elf $(OBJ)
+	@$(OBJCOPY) hello.elf -O binary hello.bin
 
 clean:
-	rm -rf *.o hello.*
+	@rm -rf *.o hello.*

@@ -39,8 +39,9 @@ user:
 
 
 kernel:
-	@make -C ${TOP}/lib/
 	@make -C ${TOP}/init/
+	@make -C ${TOP}/driver/
+	@make -C ${TOP}/lib/
 	@make -C ${TOP}/arch/riscv/kernel/
 	@make -C ${TOP}/arch/riscv/
 	@echo "\e[35mBuild Kernel Successfully\e[0m"
@@ -75,5 +76,6 @@ clean:
 	@make -C ${TOP}/arch/riscv/kernel/ clean
 	@make -C ${TOP}/init/ clean
 	@make -C ${TOP}/lib/ clean
+	@make -C ${TOP}/driver/ clean
 	@make -C ${TOP}/user/ clean
 	@echo "\e[36mClean Successfully\e[0m"

@@ -6,15 +6,15 @@
  * @date 2020-12-05
  * @ref https://gitee.com/zjuicsr/lab20fall-stu/wikis/lab5
  */
-#include "put.h"
 #include "sched.h"
+#include "stdio.h"
 #include "syscall.h"
 #include "types.h"
 
 void strap_TimerInt(void) {
     static int counter = 0;
     puts("[S] Supervisor Mode Timer Interrupt ");
-    putd(counter++);
+    printf("%d", counter++);
     puts("\n");
     return;
 }
@@ -40,7 +40,7 @@ size_t handler_sys_write(unsigned int fd, const char *buf, size_t count) {
     size_t cnt = 0;
     if (fd == 1)
         for (cnt = 0; buf[cnt] != 0 && cnt < count; cnt++)
-            *UART_VIR_ADDR = (unsigned char)buf[cnt];
+            putchar(buf[cnt]);
     return cnt;
 }
 

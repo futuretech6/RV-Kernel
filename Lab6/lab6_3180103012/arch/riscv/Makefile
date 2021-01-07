@@ -1,5 +1,5 @@
 # Makefile_riscv
-OBJ = $(wildcard ${TOP}/init/*.o) $(wildcard ${TOP}/lib/*.o) $(wildcard ${TOP}/arch/riscv/kernel/*.o)
+OBJ = $(wildcard ${TOP}/init/*.o) $(wildcard ${TOP}/driver/*.o) $(wildcard ${TOP}/lib/*.o) $(wildcard ${TOP}/arch/riscv/kernel/*.o)
 
 .PHONY: all clean
 

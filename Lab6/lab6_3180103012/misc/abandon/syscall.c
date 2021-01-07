@@ -6,8 +6,8 @@
  * @date 2020-12-14
  */
 #include "syscall.h"
-#include "put.h"
 #include "sched.h"
+#include "stdio.h"
 
 /**
  * @brief syscall_id=64
