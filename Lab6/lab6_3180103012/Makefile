@@ -23,7 +23,7 @@ ISA ?= rv64imafd
 ABI ?= lp64
 
 INCLUDE = -I ${TOP}/include/ -I ${TOP}/arch/riscv/include/
-CF = -march=$(ISA) -mabi=$(ABI) -mcmodel=medany -ffunction-sections -fdata-sections -nostartfiles -nostdlib -nostdinc -static -lgcc -Wl,--nmagic -Wl,--gc-sections -g -w
+CF = -march=$(ISA) -mabi=$(ABI) -mcmodel=medany -ffunction-sections -fdata-sections -nostartfiles -nostdlib -nostdinc -static -lgcc -Wl,--nmagic -Wl,--gc-sections -w -g
 # CFLAG = ${CF} ${INCLUDE} -D SJF
 CFLAG = ${CF} ${INCLUDE} -D PRIORITY
 
@@ -50,7 +50,7 @@ kernel:
 dasm: ${TOP}/misc/dasm.S ${TOP}/misc/vmlinux_section.txt ${TOP}/misc/hello_dasm.S ${TOP}/misc/hello_section.txt
 	@echo "\e[35mDisassemble Successfully\e[0m"
 ${TOP}/misc/dasm.S: ${TOP}/vmlinux
-	${OBJDUMP} -S ${TOP}/vmlinux > ${TOP}/misc/dasm.S
+	${OBJDUMP} -S ${TOP}/vmlinux > ${TOP}/misc/vmlinux_dasm.S
 ${TOP}/misc/vmlinux_section.txt: ${TOP}/vmlinux
 	${READELF} -S ${TOP}/vmlinux > ${TOP}/misc/vmlinux_section.txt
 ${TOP}/misc/hello_dasm.S: ${TOP}/user/hello.elf

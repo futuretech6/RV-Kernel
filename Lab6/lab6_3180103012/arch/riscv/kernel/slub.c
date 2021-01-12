@@ -289,28 +289,35 @@ void kmem_cache_free(void *obj) {
     return;
 }
 
+/**
+ * @brief
+ *
+ * @param size
+ * @return void*
+ */
 void *kmalloc(size_t size) {
     int objindex;
     void *p;
 
     if (size == 0)
         return NULL;
-
     // size 若在 kmem_cache_objsize 所提供的范围之内，则使用 slub allocator 来分配内存
     for (objindex = 0; objindex < NR_PARTIAL; objindex++) {
         // YOUR CODE HERE
     }
-
     // size 若不在 kmem_cache_objsize 范围之内，则使用 buddy system 来分配内存
     if (objindex >= NR_PARTIAL) {
-        // YOUR CODE HERE
-
+        p = alloc_pages(PAGE_CEIL(size));
         set_page_attr(p, (size - 1) / PAGE_SIZE, PAGE_BUDDY);
     }
-
     return p;
 }
 
+/**
+ * @brief
+ *
+ * @param addr
+ */
 void kfree(const void *addr) {
     struct page *page;
 
@@ -322,10 +329,8 @@ void kfree(const void *addr) {
 
     // 判断当前页面属性
     if (page->flags == PAGE_BUDDY) {
-        // YOUR CODE HERE
-
+        free_pages(addr);
         clear_page_attr(ADDR_TO_PAGE(addr)->header);
-
     } else if (page->flags == PAGE_SLUB) {
         // YOUR CODE HERE
     }

@@ -11,11 +11,14 @@
 #define USER_MAPPING_SIZE 0x100000     // 1MB
 #define KERNEL_MAPPING_SIZE 0x1000000  // 16MB
 
-// #define PAGE_SIZE 0x1000      // 4096 bytes
+#ifndef PAGE_SIZE
+#define PAGE_SIZE 0x1000  // 4096 bytes
+#endif
 #define PAGE_ENTRY_NUM 0x200  // 512
 
 #define FREE_SPACE_SIZE 0x8000000  // [rt_pg_addr, rt_pg_addr + limit): 8MB
 
+#define KERNEL_PROG_SIZE 0x1a000
 #define KERNEL_TEXT_SIZE 0x4000
 #define KERNEL_RODATA_SIZE 0x1000
 

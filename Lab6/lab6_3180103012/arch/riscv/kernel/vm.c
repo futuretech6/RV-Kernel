@@ -8,6 +8,7 @@
  * @ref http://www.five-embeddev.com/riscv-isa-manual/latest/supervisor.html#sv32algorithm
  */
 #include "vm.h"
+#include "buddy.h"
 #include "stdio.h"
 #include "string.h"
 
@@ -73,7 +74,8 @@ uint64 *page_walk(uint64 *pgtbl, uint64 va) {
         if (PTEtoV(*pte_addr)) {  // Valid PTE, next level PT has been constructed
             pgtbl = (uint64 *)(PTEtoPPN(*pte_addr) << 12);
         } else {  // Invalid PTE, need to construct next level PT
-            if ((pgtbl = (uint64 *)kalloc_byte(PAGE_SIZE)) == NULL) {
+                  // if ((pgtbl = (uint64 *)kalloc_byte(PAGE_SIZE)) == NULL) {
+            if ((pgtbl = (uint64 *)alloc_pages(1)) == NULL) {
                 puts("\n[!] Insufficient Free Space.\n");
                 return NULL;  // Insufficient free space for pg tbls
             }
@@ -104,7 +106,10 @@ void create_mapping(uint64 *pgtbl, uint64 va, uint64 pa, uint64 sz, int prot) {
  * @brief Map kernel space to equal addr and higer addr, and map hardware address
  */
 void kernel_paging_init(void) {
-    uint64 *rtpg_addr = (uint64 *)kalloc_byte(PAGE_SIZE);
+    init_buddy_system();
+
+    // uint64 *rtpg_addr = (uint64 *)kalloc_byte(PAGE_SIZE);
+    uint64 *rtpg_addr = (uint64 *)alloc_pages(1);
 
     // Map UART
     create_mapping(
@@ -142,7 +147,8 @@ uint64 *user_paging_init(void) {
     static uint64 *kernel_rtpg_addr       = NULL;
     static uint64 user_stack_top_physical = USER_PHY_ENTRY;
 
-    uint64 *rtpg_addr = (uint64 *)kalloc_byte(PAGE_SIZE);
+    uint64 *rtpg_addr = (uint64 *)alloc_pages(1);
+    // uint64 *rtpg_addr = (uint64 *)kalloc_byte(PAGE_SIZE);
 
     // Init kernel_rtpg_addr
     if (!kernel_rtpg_addr) {

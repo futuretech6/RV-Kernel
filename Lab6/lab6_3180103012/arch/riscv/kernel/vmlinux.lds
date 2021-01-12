@@ -57,6 +57,7 @@ SECTIONS {
     phy2vir_diff  = 0xffffffdf80000000;
 
     kernel_rt_pg_addr = _end;
+    kernel_rt_pg_addr = ALIGN(0x20000);
 
     mtime_addr    = 0x200bff8;
     mtimecmp_addr = 0x2004000;

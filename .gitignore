@@ -12,13 +12,10 @@ vmlinux
 System.map
 debug.log
 *.mp4
-dasm.S
+*dasm.S
+*section.txt
 Lab4/kos-riscv
-section.txt
 *.bin
 *.elf
-hello_section.txt
-vmlinux_section.txt
 Lab5/lab5_3180103012/user
 *.swp
-hello_dasm.S

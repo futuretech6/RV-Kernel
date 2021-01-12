@@ -6,7 +6,9 @@
 #define NR_PARTIAL 9
 #define PAGE_SHIFT 12
 #define PPN_SHIFT 10
+#ifndef PAGE_SIZE
 #define PAGE_SIZE (1UL << PAGE_SHIFT)
+#endif
 #define PAGE_MASK ((1UL << PPN_SHIFT) - 1)
 #define MEM_SHIFT (24 - PAGE_SHIFT)
 #define STRUCTURE_SIZE 16UL
