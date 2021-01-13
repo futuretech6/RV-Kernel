@@ -34,8 +34,6 @@ void strap_storePF(void) {
     return;
 }
 
-extern struct task_struct *current;
-
 size_t handler_sys_write(unsigned int fd, const char *buf, size_t count) {
     size_t cnt = 0;
     if (fd == 1)
@@ -49,16 +47,29 @@ long handler_sys_getpid(void) {
 }
 
 void handler_s(uint64 scause, uint64 sepc, uint64 *regs) {
-    uint64 syscall_id    = regs[17];   // a7
-    uint64 *syscall_argv = &regs[10];  // a0 ~ a6
-    uint64 *syscall_ret  = &regs[10];  // a0 ~ a1
+    uint64 id    = regs[17];   // a7
+    uint64 *argv = &regs[10];  // a0 ~ a6
+    uint64 *ret  = &regs[10];  // a0 ~ a1
 
-    switch (syscall_id) {
+    switch (id) {
         case SYS_WRITE_ID:
-            syscall_ret[0] = handler_sys_write((unsigned int)syscall_argv[0],
-                (char *)syscall_argv[1], (size_t)syscall_argv[2]);
+            ret[0] =
+                handler_sys_write((unsigned int)argv[0], (char *)argv[1], (size_t)argv[2]);
             break;
-        case SYS_GETPID_ID: syscall_ret[0] = handler_sys_getpid(); break;
+
+        case SYS_GETPID_ID: ret[0] = handler_sys_getpid(); break;
+
+        case MMAP_ID:
+            ret[0] = mmap((void *)argv[0], (size_t)argv[1], (int)argv[2], (int)argv[3],
+                (int)argv[4], (__off_t)argv[5]);
+            break;
+
+        case MUNMAP_ID: ret[0] = munmap((void *)argv[0], (size_t)argv[1]); break;
+
+        case MPROTECT_ID:
+            ret[0] = mprotect((void *)argv[0], (size_t)argv[1], (int)argv[2]);
+            break;
+
         default: break;
     }
 }

@@ -270,15 +270,15 @@ trap_s:
             j trap_s_except_end
 
         trap_s_instPF:
-            call strap_instPF
+            call do_page_fault
             j trap_s_except_end
 
         trap_s_loadPF:
-            call strap_loadPF
+            call do_page_fault
             j trap_s_except_end
 
         trap_s_storePF:
-            call strap_storePF
+            call do_page_fault
             j trap_s_except_end
 
         trap_s_except_end:

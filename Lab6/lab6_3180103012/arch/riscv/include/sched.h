@@ -2,6 +2,7 @@
 #define _SCHED_H
 
 #include "types.h"
+#include "mm.h"
 
 #define TASK_BASE 0xffffffe000ff0000
 #define TASK_SIZE 0x1000
@@ -64,13 +65,9 @@ struct thread_struct {
     unsigned long long s11;
 };
 
-struct mm_struct {
-    uint64 *rtpg_addr;
-};
-
 /* 进程数据结构 */
 struct task_struct {
-    long state;     // 进程状态 Lab3中进程初始化时置为TASK_RUNNING
+    long state;     // 进程状态Lab3中进程初始化时置为TASK_RUNNING
     long counter;   // 运行剩余时间
     long priority;  // 运行优先级 1最高 5最低
     long blocked;
@@ -80,7 +77,7 @@ struct task_struct {
     // uint64 sepc;
     uint64 sscratch;
 
-    struct mm_struct mm;
+    struct mm_struct *mm;
     struct thread_struct thread;  // 该进程状态段
 };
 

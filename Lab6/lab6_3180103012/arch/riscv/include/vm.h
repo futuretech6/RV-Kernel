@@ -30,6 +30,9 @@
 #define UART_PHY_ADDR ((volatile unsigned char *)0x10000000)
 #define UART_VIR_ADDR ((volatile unsigned char *)0xffffffdf90000000)
 
+#define VA2PA(__VA) ((void *)((uint64)(__VA)-0xffffffdf80000000))
+#define PA2VA(__PA) ((void *)((uint64)(__PA) + 0xffffffdf80000000))
+
 #define PAGE_CEIL(__A) (((uint64)(__A)-1) / PAGE_SIZE + 1)
 #define PAGE_FLOOR(__A) ((uint64)(__A) / PAGE_SIZE)
 
@@ -47,6 +50,7 @@ struct pageTable {
     uint64 PTE_list[512];
 };
 
+uint64 *page_walk(uint64 *pgtbl, uint64 va);
 void create_mapping(uint64 *pgtbl, uint64 va, uint64 pa, uint64 sz, int prot);
 void kernel_paging_init(void);
 uint64 *user_paging_init(void);

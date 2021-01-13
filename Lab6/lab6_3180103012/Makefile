@@ -23,7 +23,7 @@ ISA ?= rv64imafd
 ABI ?= lp64
 
 INCLUDE = -I ${TOP}/include/ -I ${TOP}/arch/riscv/include/
-CF = -march=$(ISA) -mabi=$(ABI) -mcmodel=medany -ffunction-sections -fdata-sections -nostartfiles -nostdlib -nostdinc -static -lgcc -Wl,--nmagic -Wl,--gc-sections -w -g
+CF = -march=$(ISA) -mabi=$(ABI) -mcmodel=medany -ffunction-sections -fdata-sections -nostartfiles -nostdlib -nostdinc -static -lgcc -Wl,--nmagic -Wl,--gc-sections -g -w
 # CFLAG = ${CF} ${INCLUDE} -D SJF
 CFLAG = ${CF} ${INCLUDE} -D PRIORITY
 

@@ -9,6 +9,7 @@
  */
 #include "vm.h"
 #include "buddy.h"
+#include "slub.h"
 #include "stdio.h"
 #include "string.h"
 
@@ -75,7 +76,7 @@ uint64 *page_walk(uint64 *pgtbl, uint64 va) {
             pgtbl = (uint64 *)(PTEtoPPN(*pte_addr) << 12);
         } else {  // Invalid PTE, need to construct next level PT
                   // if ((pgtbl = (uint64 *)kalloc_byte(PAGE_SIZE)) == NULL) {
-            if ((pgtbl = (uint64 *)alloc_pages(1)) == NULL) {
+            if ((pgtbl = (uint64 *)VA2PA(kmalloc(PAGE_SIZE))) == NULL) {
                 puts("\n[!] Insufficient Free Space.\n");
                 return NULL;  // Insufficient free space for pg tbls
             }
@@ -108,8 +109,7 @@ void create_mapping(uint64 *pgtbl, uint64 va, uint64 pa, uint64 sz, int prot) {
 void kernel_paging_init(void) {
     init_buddy_system();
 
-    // uint64 *rtpg_addr = (uint64 *)kalloc_byte(PAGE_SIZE);
-    uint64 *rtpg_addr = (uint64 *)alloc_pages(1);
+    uint64 *rtpg_addr = (uint64 *)VA2PA(kmalloc(PAGE_SIZE));
 
     // Map UART
     create_mapping(
@@ -147,8 +147,7 @@ uint64 *user_paging_init(void) {
     static uint64 *kernel_rtpg_addr       = NULL;
     static uint64 user_stack_top_physical = USER_PHY_ENTRY;
 
-    uint64 *rtpg_addr = (uint64 *)alloc_pages(1);
-    // uint64 *rtpg_addr = (uint64 *)kalloc_byte(PAGE_SIZE);
+    uint64 *rtpg_addr = (uint64 *)VA2PA(kmalloc(PAGE_SIZE));
 
     // Init kernel_rtpg_addr
     if (!kernel_rtpg_addr) {

@@ -39,14 +39,14 @@ void init_buddy_system(void) {
         for (uint64 node_count = 0; node_count < buddy.pgnum / layer_size; node_count++)
             buddy.bitmap[i++] = layer_size;
 
-    alloc_pages(PAGE_FLOOR(KERNEL_PROG_SIZE));
+    alloc_pages_ret_pa(PAGE_FLOOR(KERNEL_PROG_SIZE));
 }
 
 /**
  * @brief allocate space of n pages from low to high
  *
  * @param npages allocated space size in page
- * @return void* virtual addr of the space head (in byte)
+ * @return void* VA of the space head (in byte)
  */
 void *alloc_pages(int npages) {
     if (buddy.bitmap[0] < npages) {  // No enough space
@@ -75,9 +75,17 @@ void *alloc_pages(int npages) {
         if (!i)
             break;
     }
+    return (void *)PA2VA(BUDDY_START_ADDR + ret_addr_pg * PAGE_SIZE);
+}
 
-    return (void *)(BUDDY_START_ADDR + ret_addr_pg * PAGE_SIZE);
-    // return (void *)PA2VA(BUDDY_START_ADDR + ret_addr_pg * PAGE_SIZE);
+/**
+ * @brief return addr is in PA
+ *
+ * @param npages
+ * @return void*
+ */
+void *alloc_pages_ret_pa(int npages) {
+    return (void *)VA2PA(alloc_pages(npages));
 }
 
 /**

@@ -7,7 +7,9 @@
  * @ref https://gitee.com/zjuicsr/lab20fall-stu/wikis/lab4
  */
 #include "sched.h"
+#include "mm.h"
 #include "rand.h"
+#include "slub.h"
 #include "stdio.h"
 #include "syscall.h"
 #include "vm.h"
@@ -20,6 +22,7 @@ struct task_struct *task[NR_TASKS];
  */
 void task_init(void) {
     current = (struct task_struct *)TASK_BASE;
+    static struct mm_struct mm_tmp[LAB_TEST_NUM];
     for (int i = 0; i <= LAB_TEST_NUM; i++) {
         task[i]           = (struct task_struct *)(long)(TASK_BASE + TASK_SIZE * i);
         task[i]->state    = TASK_RUNNING;
@@ -34,7 +37,10 @@ void task_init(void) {
 
         task[i]->sscratch = (size_t)task[i]->thread.sp;
 
-        task[i]->mm.rtpg_addr = user_paging_init();
+        task[i]->mm               = &mm_tmp[i];
+        task[i]->mm->rtpg_addr    = user_paging_init();
+        // task[i]->mm->rtpg_addr    = (uint64 *)VA2PA(kmalloc(PAGE_SIZE));
+        task[i]->mm->vm_area_list = NULL;
 
         if (i != 0)
 #if PREEMPT_ENABLE == 0  // SJF
@@ -95,7 +101,7 @@ void switch_to(struct task_struct *next) {
     asm("sll t0, t0, 16");
     asm("ori t0, t0, 0");
     asm("sll t0, t0, 44");
-    asm("ld t1, %0" : : "m"(current->mm.rtpg_addr));
+    asm("ld t1, %0" : : "m"(current->mm->rtpg_addr));
     asm("srl t1, t1, 12");
     asm("or t0, t0, t1");
     asm("csrw satp, t0");

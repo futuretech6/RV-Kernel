@@ -4,7 +4,7 @@
 #include "string.h"
 #include "vm.h"
 
-enum { PAGE_FREE, PAGE_BUDDY, PAGE_SLUB, PAGE_RESEARVE };
+enum { PAGE_FREE, PAGE_BUDDY, PAGE_SLUB, PAGE_RESERVE };
 
 struct cache_area cache_region;
 unsigned long cache_tid = 0;
@@ -101,8 +101,8 @@ void page_init() {
         while (1)
             ;
 
-    set_page_attr(page_base, page_size, PAGE_RESEARVE);
     memset(page_base, 0, page_size << PAGE_SHIFT);
+    set_page_attr(page_base, page_size, PAGE_RESERVE);
 }
 
 void slub_structure_init() {
@@ -112,7 +112,7 @@ void slub_structure_init() {
         while (1)
             ;
 
-    set_page_attr(structure_free_list, STRUCTURE_SIZE, PAGE_RESEARVE);
+    set_page_attr(structure_free_list, STRUCTURE_SIZE, PAGE_RESERVE);
 
     cache_region.base = structure_free_list;
     init_object_list(structure_free_list, ALIGN_SIZE(sizeof(struct kmem_cache), 8),
@@ -239,6 +239,10 @@ int kmem_cache_destroy(struct kmem_cache *s) {
     return 0;
 }
 
+/**
+ * @param cache
+ * @return void*
+ */
 void *kmem_cache_alloc(struct kmem_cache *cache) {
     void *object = NULL;
     struct list_head *l;
@@ -266,6 +270,9 @@ void *kmem_cache_alloc(struct kmem_cache *cache) {
     return object;
 }
 
+/**
+ * @param obj
+ */
 void kmem_cache_free(void *obj) {
     struct page *page = ADDR_TO_PAGE(obj)->header;
     struct kmem_cache *s;
@@ -302,13 +309,15 @@ void *kmalloc(size_t size) {
     if (size == 0)
         return NULL;
     // size 若在 kmem_cache_objsize 所提供的范围之内，则使用 slub allocator 来分配内存
-    for (objindex = 0; objindex < NR_PARTIAL; objindex++) {
-        // YOUR CODE HERE
-    }
+    for (objindex = 0; objindex < NR_PARTIAL; objindex++)
+        if (size <= kmem_cache_objsize[objindex])
+            if (p = kmem_cache_alloc(slub_allocator[objindex]))  // Not NULL
+                break;
+
     // size 若不在 kmem_cache_objsize 范围之内，则使用 buddy system 来分配内存
     if (objindex >= NR_PARTIAL) {
         p = alloc_pages(PAGE_CEIL(size));
-        set_page_attr(p, (size - 1) / PAGE_SIZE, PAGE_BUDDY);
+        set_page_attr(p, PAGE_CEIL(size), PAGE_BUDDY);
     }
     return p;
 }
@@ -325,14 +334,14 @@ void kfree(const void *addr) {
         return;
 
     // 获得地址所在页的属性
-    // YOUR CODE HERE
+    page = ADDR_TO_PAGE(addr);
 
     // 判断当前页面属性
     if (page->flags == PAGE_BUDDY) {
         free_pages(addr);
         clear_page_attr(ADDR_TO_PAGE(addr)->header);
     } else if (page->flags == PAGE_SLUB) {
-        // YOUR CODE HERE
+        kmem_cache_free(addr);
     }
 
     return;
