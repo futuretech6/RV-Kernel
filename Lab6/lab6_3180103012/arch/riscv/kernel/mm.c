@@ -43,7 +43,7 @@ void *do_mmap(struct mm_struct *mm, void *start, size_t length, int prot, unsign
     struct vm_area_struct *vm_area_ptr = kmalloc(sizeof(struct vm_area_struct));
 
     vm_area_ptr->vm_start            = start;
-    vm_area_ptr->vm_end              = (void *)((uint64)start + length);
+    vm_area_ptr->vm_end              = start + length;
     vm_area_ptr->vm_next             = NULL;
     vm_area_ptr->vm_mm               = current->mm;
     vm_area_ptr->vm_page_prot.pgprot = prot;

@@ -19,7 +19,7 @@ void do_page_fault(void) {
             break;
     }
     if (!vm_area_ptr) {  // Not Found
-        panic("Invalid vm area in page fault.");
+        panic("Invalid vm area in page fault - no vm area found.");
         return;
     }
 
@@ -45,7 +45,7 @@ void do_page_fault(void) {
             break;
     }
     if (!prot_match) {
-        panic("Invalid vm area in page fault.");
+        panic("Invalid vm area in page fault - prot unmatch.");
         return;
     }
 

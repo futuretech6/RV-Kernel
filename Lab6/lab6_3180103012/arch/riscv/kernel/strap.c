@@ -6,6 +6,7 @@
  * @date 2020-12-05
  * @ref https://gitee.com/zjuicsr/lab20fall-stu/wikis/lab5
  */
+#include "mm.h"
 #include "sched.h"
 #include "stdio.h"
 #include "syscall.h"

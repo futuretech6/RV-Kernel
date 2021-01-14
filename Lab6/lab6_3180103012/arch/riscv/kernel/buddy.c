@@ -39,7 +39,7 @@ void init_buddy_system(void) {
         for (uint64 node_count = 0; node_count < buddy.pgnum / layer_size; node_count++)
             buddy.bitmap[i++] = layer_size;
 
-    alloc_pages_ret_pa(PAGE_FLOOR(KERNEL_PROG_SIZE));
+    alloc_pages(PAGE_FLOOR(KERNEL_PROG_SIZE));
 }
 
 /**
@@ -56,7 +56,7 @@ void *alloc_pages(int npages) {
 
     int bm_loc         = 0;
     uint64 alloc_size  = buddy.pgnum;
-    uint64 ret_addr_pg = 0;  // Starting from physical 0x0
+    uint64 ret_addr_pg = 0;  // Starting from 0x80000000, in unit page
 
     while (1) {
         // alloc_size check make sure BIN_TREE_CHILD will not overflow access
@@ -76,16 +76,6 @@ void *alloc_pages(int npages) {
             break;
     }
     return (void *)PA2VA(BUDDY_START_ADDR + ret_addr_pg * PAGE_SIZE);
-}
-
-/**
- * @brief return addr is in PA
- *
- * @param npages
- * @return void*
- */
-void *alloc_pages_ret_pa(int npages) {
-    return (void *)VA2PA(alloc_pages(npages));
 }
 
 /**

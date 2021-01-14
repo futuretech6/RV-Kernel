@@ -102,6 +102,7 @@ void page_init() {
             ;
 
     memset(page_base, 0, page_size << PAGE_SHIFT);
+
     set_page_attr(page_base, page_size, PAGE_RESERVE);
 }
 
@@ -239,10 +240,6 @@ int kmem_cache_destroy(struct kmem_cache *s) {
     return 0;
 }
 
-/**
- * @param cache
- * @return void*
- */
 void *kmem_cache_alloc(struct kmem_cache *cache) {
     void *object = NULL;
     struct list_head *l;
@@ -270,9 +267,6 @@ void *kmem_cache_alloc(struct kmem_cache *cache) {
     return object;
 }
 
-/**
- * @param obj
- */
 void kmem_cache_free(void *obj) {
     struct page *page = ADDR_TO_PAGE(obj)->header;
     struct kmem_cache *s;

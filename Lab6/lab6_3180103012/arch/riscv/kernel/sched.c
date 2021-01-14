@@ -7,12 +7,15 @@
  * @ref https://gitee.com/zjuicsr/lab20fall-stu/wikis/lab4
  */
 #include "sched.h"
+#include "buddy.h"
 #include "mm.h"
 #include "rand.h"
 #include "slub.h"
 #include "stdio.h"
+#include "string.h"
 #include "syscall.h"
 #include "vm.h"
+#include "vm_flag.h"
 
 struct task_struct *current;
 struct task_struct *task[NR_TASKS];
@@ -21,6 +24,8 @@ struct task_struct *task[NR_TASKS];
  * @brief init tasks, create 4 threads running dead-loop
  */
 void task_init(void) {
+    slub_init();
+
     current = (struct task_struct *)TASK_BASE;
     static struct mm_struct mm_tmp[LAB_TEST_NUM];
     for (int i = 0; i <= LAB_TEST_NUM; i++) {
@@ -38,9 +43,21 @@ void task_init(void) {
         task[i]->sscratch = (size_t)task[i]->thread.sp;
 
         task[i]->mm               = &mm_tmp[i];
-        task[i]->mm->rtpg_addr    = user_paging_init();
-        // task[i]->mm->rtpg_addr    = (uint64 *)VA2PA(kmalloc(PAGE_SIZE));
         task[i]->mm->vm_area_list = NULL;
+
+        uint64 k_rtpg;
+        asm("la t0, kernel_rt_pg_addr");
+        asm("sd t0, %0" : : "m"(k_rtpg));
+
+        // task[i]->mm->rtpg_addr    = user_paging_init();
+        // task[i]->mm->rtpg_addr = (uint64 *)VA2PA(alloc_pages(1));
+        task[i]->mm->rtpg_addr = (uint64 *)VA2PA(kmalloc(PAGE_SIZE));
+
+        memcpy(task[i]->mm->rtpg_addr, k_rtpg, PAGE_SIZE);
+        do_mmap(task[i]->mm, 0, USER_MAPPING_SIZE, VM_READ | VM_WRITE | VM_EXEC,
+            MAP_PRIVATE | MAP_ANONYMOUS, 0);
+        do_mmap(task[i]->mm, USER_STACK_TOP - USER_MAPPING_SIZE, USER_MAPPING_SIZE,
+            VM_READ | VM_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, 0);
 
         if (i != 0)
 #if PREEMPT_ENABLE == 0  // SJF
