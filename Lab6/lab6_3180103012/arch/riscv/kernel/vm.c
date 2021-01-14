@@ -24,7 +24,7 @@
 // PROT = {RSW, D, A, G, U, X, W, R, V} = {6'b0, PERM_X|W|R, V}
 #define LoadPTE(__pte_addr, __ppn, __prot, __v)                                     \
     {                                                                               \
-        *__pte_addr = ((uint64)(*(__pte_addr)) & 0xffc0000000000000) |              \
+        *__pte_addr = ((uint64)(*(__pte_addr)) & 0xffc00000000003fe) |              \
                       ((uint64)(__ppn) << 10) | ((uint64)(__prot) | (uint64)(__v)); \
     }
 

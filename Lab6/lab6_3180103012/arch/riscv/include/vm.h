@@ -8,7 +8,7 @@
 #define USER_PHY_ENTRY 0x84000000
 #define USER_STACK_TOP 0xffffffdf80000000
 
-#define USER_MAPPING_SIZE 0x100000     // 1MB
+#define USER_MAPPING_SIZE 0x1000
 #define KERNEL_MAPPING_SIZE 0x1000000  // 16MB
 
 #ifndef PAGE_SIZE
@@ -19,7 +19,7 @@
 #define FREE_SPACE_SIZE 0x8000000  // [rt_pg_addr, rt_pg_addr + limit): 8MB
 
 #define KERNEL_PROG_SIZE 0x1a000
-#define KERNEL_TEXT_SIZE 0x4000
+#define KERNEL_TEXT_SIZE 0x5000
 #define KERNEL_RODATA_SIZE 0x1000
 
 #define PERM_R 0b10

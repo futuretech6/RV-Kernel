@@ -9,6 +9,7 @@ thread_init:
     csrw sepc, t0
     sret
 
+
 .global trap_m
 trap_m:
     # Exchange sp and mscratch to use physical stack
@@ -217,7 +218,7 @@ trap_s:
 
         la s1, scause_e_ecallU
         beq s0, s1, trap_s_ecallU
-        la s1, scause_e_ecallS
+        la s1, scause_e_instPF
         beq s0, s1, trap_s_instPF
         la s1, scause_e_loadPF
         beq s0, s1, trap_s_loadPF

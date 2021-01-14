@@ -12,4 +12,4 @@
 int printf(const char *, ...);
 int putchar(int);
 int puts(const char *);
-void panic(char *s);
+void panic(const char *s, ...);

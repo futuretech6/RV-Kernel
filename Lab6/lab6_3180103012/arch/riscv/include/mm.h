@@ -3,10 +3,10 @@
 
 #include "types.h"
 
-#define PROT_NONE 0x0   // 页内容不可被访问
-#define PROT_READ 0x1   // 页内容可以被读取
-#define PROT_WRITE 0x2  // 页可以被写入内容
-#define PROT_EXEC 0x4   // 页内容可以被执行
+// #define PROT_NONE 0x0   // 页内容不可被访问
+// #define PROT_READ 0x1   // 页内容可以被读取
+// #define PROT_WRITE 0x2  // 页可以被写入内容
+// #define PROT_EXEC 0x4   // 页内容可以被执行
 #define PROT_SEM 0x8    // (可选) 页面可能用于原子操作(atomic operation)
 #define PROT_GROWSDOWN 0x01000000
 #define PROT_GROWSUP 0x02000000

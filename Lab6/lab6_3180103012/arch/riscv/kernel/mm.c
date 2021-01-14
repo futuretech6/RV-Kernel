@@ -28,10 +28,10 @@ void *do_mmap(struct mm_struct *mm, void *start, size_t length, int prot, unsign
     unsigned long pgoff) {
     _Bool isCollision = 0;
 
-    if (current->mm->vm_area_list)  // vm_area_list not empty
-        for (struct vm_area_struct *p = current->mm->vm_area_list; p->vm_next; p = p->vm_next)
-            if (p->vm_start < start && start < p->vm_end ||
-                p->vm_start < start + length && start + length < p->vm_end) {
+    if (mm->vm_area_list)  // vm_area_list not empty
+        for (struct vm_area_struct *p = mm->vm_area_list; p->vm_next; p = p->vm_next)
+            if (p->vm_start <= start && start < p->vm_end ||
+                p->vm_start < start + length && start + length <= p->vm_end) {
                 isCollision = 1;
                 break;
             }
@@ -45,16 +45,16 @@ void *do_mmap(struct mm_struct *mm, void *start, size_t length, int prot, unsign
     vm_area_ptr->vm_start            = start;
     vm_area_ptr->vm_end              = start + length;
     vm_area_ptr->vm_next             = NULL;
-    vm_area_ptr->vm_mm               = current->mm;
+    vm_area_ptr->vm_mm               = mm;
     vm_area_ptr->vm_page_prot.pgprot = prot;
     vm_area_ptr->vm_flags            = flags;
 
-    if (!current->mm->vm_area_list) {
-        vm_area_ptr->vm_prev      = NULL;
-        current->mm->vm_area_list = vm_area_ptr;
-    } else {
+    if (!mm->vm_area_list) {  // Empty vm area list
+        vm_area_ptr->vm_prev = NULL;
+        mm->vm_area_list     = vm_area_ptr;
+    } else {  // Traverse existing vm area list
         struct vm_area_struct *p;
-        for (p = current->mm->vm_area_list; p->vm_next; p = p->vm_next)
+        for (p = mm->vm_area_list; p->vm_next; p = p->vm_next)
             ;
         p->vm_next           = vm_area_ptr;
         vm_area_ptr->vm_prev = p;

@@ -24,10 +24,16 @@ struct task_struct *task[NR_TASKS];
  * @brief init tasks, create 4 threads running dead-loop
  */
 void task_init(void) {
+    current = (struct task_struct *)TASK_BASE;
+
+    static struct mm_struct mm_tmp[LAB_TEST_NUM];  // Static for thread to use
+
     slub_init();
 
-    current = (struct task_struct *)TASK_BASE;
-    static struct mm_struct mm_tmp[LAB_TEST_NUM];
+    uint64 *k_rtpg;
+    asm("la t0, kernel_rt_pg_addr");
+    asm("sd t0, %0" : : "m"(k_rtpg));
+
     for (int i = 0; i <= LAB_TEST_NUM; i++) {
         task[i]           = (struct task_struct *)(long)(TASK_BASE + TASK_SIZE * i);
         task[i]->state    = TASK_RUNNING;
@@ -45,15 +51,14 @@ void task_init(void) {
         task[i]->mm               = &mm_tmp[i];
         task[i]->mm->vm_area_list = NULL;
 
-        uint64 k_rtpg;
-        asm("la t0, kernel_rt_pg_addr");
-        asm("sd t0, %0" : : "m"(k_rtpg));
-
         // task[i]->mm->rtpg_addr    = user_paging_init();
         // task[i]->mm->rtpg_addr = (uint64 *)VA2PA(alloc_pages(1));
         task[i]->mm->rtpg_addr = (uint64 *)VA2PA(kmalloc(PAGE_SIZE));
 
         memcpy(task[i]->mm->rtpg_addr, k_rtpg, PAGE_SIZE);
+
+        // create_mapping(task[i]->mm->rtpg_addr, 0, USER_PHY_ENTRY, USER_MAPPING_SIZE,
+        //     PROT_U | PERM_R | PERM_W | PERM_X);
         do_mmap(task[i]->mm, 0, USER_MAPPING_SIZE, VM_READ | VM_WRITE | VM_EXEC,
             MAP_PRIVATE | MAP_ANONYMOUS, 0);
         do_mmap(task[i]->mm, USER_STACK_TOP - USER_MAPPING_SIZE, USER_MAPPING_SIZE,
