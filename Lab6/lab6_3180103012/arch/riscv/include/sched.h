@@ -1,8 +1,8 @@
 #ifndef _SCHED_H
 #define _SCHED_H
 
-#include "types.h"
 #include "mm.h"
+#include "types.h"
 
 #define TASK_BASE 0xffffffe000ff0000
 #define TASK_SIZE 0x1000

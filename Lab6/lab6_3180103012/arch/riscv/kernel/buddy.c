@@ -26,7 +26,6 @@ struct buddy buddy;
 #define BIN_TREE_UPCHILD(__X) ((__X)*2 + 1)
 #define BIN_TREE_DOWNCHILD(__X) ((__X)*2 + 2)
 #define BIN_TREE_PARENT(__X) (((__X)-1) / 2)
-#define ADDR_TO_INDEX(__A) ((__A))
 
 /**
  * @brief initialize buddy system

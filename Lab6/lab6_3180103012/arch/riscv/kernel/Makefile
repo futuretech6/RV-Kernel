@@ -10,6 +10,7 @@ c: $(patsubst %c, %o, ${SRC}) ${DEP}
 %.o: %.S ${DEP}
 	@${CC} $(CFLAG) -c $< -o $@
 
+
 asm: $(patsubst %S, %o, ${SRC}) ${DEP}
 %.o: %.c ${DEP}
 	@${CC} ${CFLAG} -c $< -o $@

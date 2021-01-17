@@ -5,6 +5,12 @@
 #include "types.h"
 #include "vm.h"
 
+#define LoadPTE(__pte_addr, __prot, __v)                               \
+    {                                                                  \
+        *__pte_addr = ((uint64)(*(__pte_addr)) & 0xfffffffffffffc00) | \
+                      ((uint64)(__prot) | (uint64)(__v));              \
+    }
+
 unsigned long get_unmapped_area(size_t length) {
     if (!current->mm->vm_area_list)  // Not allocated yet
         return 0x0L;
@@ -26,8 +32,8 @@ unsigned long get_unmapped_area(size_t length) {
 
 void *do_mmap(struct mm_struct *mm, void *start, size_t length, int prot, unsigned long flags,
     unsigned long pgoff) {
-    _Bool isCollision = 0;
 
+    _Bool isCollision = 0;
     if (mm->vm_area_list)  // vm_area_list not empty
         for (struct vm_area_struct *p = mm->vm_area_list; p->vm_next; p = p->vm_next)
             if (p->vm_start <= start && start < p->vm_end ||
@@ -36,9 +42,8 @@ void *do_mmap(struct mm_struct *mm, void *start, size_t length, int prot, unsign
                 break;
             }
 
-    if (isCollision) {  // Collision
+    if (isCollision)  // Collision
         start = (void *)get_unmapped_area(length);
-    }
 
     struct vm_area_struct *vm_area_ptr = kmalloc(sizeof(struct vm_area_struct));
 
@@ -78,7 +83,11 @@ void *mmap(void *__addr, size_t __len, int __prot, int __flags, int __fd, __off_
     return do_mmap(current->mm, __addr, __len, __prot, MAP_PRIVATE | MAP_ANONYMOUS, 0);
 }
 
-void free_page_tables(uint64 pagetable, uint64 va, uint64 n, int free_frame) {}
+void free_page_tables(uint64 pagetable, uint64 va, uint64 n, int free_frame) {
+    for (uint64 addr_last_byte = va + n - 1; va <= addr_last_byte; va += PAGE_SIZE) {
+        LoadPTE(page_walk(pagetable, va), 0, 1);
+    }
+}
 
 /**
  * @brief
@@ -88,21 +97,19 @@ void free_page_tables(uint64 pagetable, uint64 va, uint64 n, int free_frame) {}
  * @return int
  */
 int munmap(void *start, size_t length) {
+    _Bool found = 0;
     for (struct vm_area_struct *p = current->mm->vm_area_list; p; p = p->vm_next) {
-        if (p->vm_start == start && p->vm_end == start + length) {
-            void *rtpg;
-            asm("csrr t0, satp");
-            asm("sd t0, %0" : : "m"(rtpg));
-            free_page_tables(rtpg, start, PAGE_CEIL(length), 1);
+        if (p->vm_start >= start && p->vm_end <= start + length) {
+            free_page_tables(current->mm->rtpg_addr, start, PAGE_CEIL(length), 1);
             if (p->vm_prev)
                 p->vm_prev->vm_next = p->vm_next;
             if (p->vm_next)
                 p->vm_next->vm_prev = p->vm_prev;
             kfree(p);
-            return 0;
+            found = 1;
         }
     }
-    return -1;
+    return (found ? 0 : -1);
 }
 
 /**
@@ -114,12 +121,8 @@ int munmap(void *start, size_t length) {
  * @return int
  */
 int mprotect(void *__addr, size_t __len, int __prot) {
-    uint64 rtpg_addr;
-    asm("csrr t0, satp");
-    asm("sd t0, %0" : : "m"(rtpg_addr));
-    rtpg_addr &= 0xfffffffffff;
-    rtpg_addr <<= PAGE_SHIFT;
-
-    uint64 *pte_addr = page_walk((uint64 *)rtpg_addr, __addr);
-    // *pte_addr = (*pte_addr * 0x)
+    for (uint64 addr_last_byte = __addr + __len - 1; __addr <= addr_last_byte;
+         __addr += PAGE_SIZE) {
+        LoadPTE(page_walk(current->mm->rtpg_addr, __addr), __prot, 1);
+    }
 }

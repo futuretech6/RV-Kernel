@@ -137,35 +137,3 @@ void kernel_paging_init(void) {
         KERNEL_MAPPING_SIZE - (KERNEL_TEXT_SIZE + KERNEL_RODATA_SIZE),
         PERM_R | PERM_W);  // Other Sections
 }
-
-/**
- * @brief Map user space memory, while copying the kernel space
- *
- * @return uint64* Address of the root page
- */
-uint64 *user_paging_init(void) {
-    static uint64 *kernel_rtpg_addr       = NULL;
-    static uint64 user_stack_top_physical = USER_PHY_ENTRY;
-
-    uint64 *rtpg_addr = (uint64 *)VA2PA(alloc_pages(1));
-
-    // Init kernel_rtpg_addr
-    if (!kernel_rtpg_addr) {
-        asm("la t0, kernel_rt_pg_addr");
-        asm("sd t0, %0" : : "m"(kernel_rtpg_addr));
-    }
-
-    // Copy Kernel Page
-    memcpy(rtpg_addr, kernel_rtpg_addr, PAGE_SIZE);
-
-    // Map user program
-    create_mapping(
-        rtpg_addr, 0, USER_PHY_ENTRY, USER_MAPPING_SIZE, PROT_U | PERM_R | PERM_W | PERM_X);
-
-    // Map user stack
-    create_mapping(rtpg_addr, USER_STACK_TOP - USER_MAPPING_SIZE,
-        (user_stack_top_physical += USER_MAPPING_SIZE), USER_MAPPING_SIZE,
-        PROT_U | PERM_R | PERM_W);
-
-    return rtpg_addr;
-}

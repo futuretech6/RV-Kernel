@@ -13,6 +13,8 @@ void do_page_fault(void) {
     asm("csrr t0, stval");
     asm("sd t0, %0" : : "m"(bad_addr));
 
+    printf("[S] Bad Addr: 0x%lx\n", bad_addr);
+
     struct vm_area_struct *vm_area_ptr = current->mm->vm_area_list;
     for (; vm_area_ptr; vm_area_ptr = vm_area_ptr->vm_next) {
         if (vm_area_ptr->vm_start <= bad_addr && bad_addr < vm_area_ptr->vm_end)
@@ -32,13 +34,13 @@ void do_page_fault(void) {
     int prot = PROT_U;
     switch (scause) {
         case CAUSE_FETCH_PAGE_FAULT:
-            prot_match = (vm_area_ptr->vm_page_prot.pgprot | (prot |= PERM_X));
+            prot_match = (vm_area_ptr->vm_page_prot.pgprot | PERM_X);
             break;
         case CAUSE_LOAD_PAGE_FAULT:
-            prot_match = (vm_area_ptr->vm_page_prot.pgprot | (prot |= PERM_R));
+            prot_match = (vm_area_ptr->vm_page_prot.pgprot | PERM_R);
             break;
         case CAUSE_STORE_PAGE_FAULT:
-            prot_match = (vm_area_ptr->vm_page_prot.pgprot | (prot |= PERM_W));
+            prot_match = (vm_area_ptr->vm_page_prot.pgprot | PERM_W);
             break;
         default: prot_match = 0; break;
     }
@@ -46,20 +48,16 @@ void do_page_fault(void) {
         panic("Invalid vm area in page fault - prot unmatch.");
         return;
     }
-
-    // uint64 rtpg_addr;
-    // asm("csrr t0, satp");
-    // asm("sd t0, %0" : : "m"(rtpg_addr));
-    // rtpg_addr &= 0xfffffffffff;
-    // rtpg_addr <<= PAGE_SHIFT;
-
     uint64 pa;
 
     if (bad_addr < USER_MAPPING_SIZE) {  // User Prog
         pa = USER_PHY_ENTRY + PAGE_FLOOR(bad_addr) * PAGE_SIZE;
+        prot |= PERM_R | PERM_W | PERM_X;
     } else if (bad_addr >= USER_STACK_TOP - USER_MAPPING_SIZE) {  // User Stack
-        pa = USER_PHY_ENTRY + USER_MAPPING_SIZE + PAGE_FLOOR(bad_addr) * PAGE_SIZE -
-             (USER_STACK_TOP - USER_MAPPING_SIZE);
+        // pa = USER_PHY_ENTRY + USER_MAPPING_SIZE + PAGE_FLOOR(bad_addr) * PAGE_SIZE -
+        //      (USER_STACK_TOP - USER_MAPPING_SIZE);
+        pa = (uint64)VA2PA(kmalloc(PAGE_SIZE));
+        prot |= PERM_R | PERM_W;
     } else  // Other
         pa = (uint64)VA2PA(kmalloc(PAGE_SIZE));
 
