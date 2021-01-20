@@ -9,6 +9,7 @@
  */
 #include "vm.h"
 #include "buddy.h"
+#include "mm.h"
 #include "slub.h"
 #include "stdio.h"
 #include "string.h"
@@ -75,8 +76,8 @@ uint64 *page_walk(uint64 *pgtbl, uint64 va) {
         if (PTEtoV(*pte_addr)) {  // Valid PTE, next level PT has been constructed
             pgtbl = (uint64 *)(PTEtoPPN(*pte_addr) << 12);
         } else {  // Invalid PTE, need to construct next level PT
-                  // if ((pgtbl = (uint64 *)kalloc_byte(PAGE_SIZE)) == NULL) {
             if ((pgtbl = (uint64 *)VA2PA(alloc_pages(1))) == NULL) {
+                // if ((pgtbl = (uint64 *)kmalloc(PAGE_SIZE)) == NULL) {
                 puts("\n[!] Insufficient Free Space.\n");
                 return NULL;  // Insufficient free space for pg tbls
             }
